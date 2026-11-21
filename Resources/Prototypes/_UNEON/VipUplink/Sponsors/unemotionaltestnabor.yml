@@ -1,0 +1,76 @@
+- type: entity
+  parent: ClothingNeckBase
+  id: UneonSponsorunemotionaltestnaborCloak
+  name: "Плащ — unemotest"
+  description: "unemotest"
+  components:
+  - type: Sprite
+    sprite: _UNEON/Clothing/Sponsors/unemotionaltestnabor/cloak.rsi
+  - type: Clothing
+    sprite: _UNEON/Clothing/Sponsors/unemotionaltestnabor/cloak.rsi
+
+- type: entity
+  parent: [ClothingOuterBaseLarge, GeigerCounterClothing]
+  id: UneonSponsorunemotionaltestnaborSuit
+  name: "Скафандр — unemotest"
+  description: "unemotest"
+  components:
+  - type: Sprite
+    sprite: _UNEON/Clothing/Sponsors/unemotionaltestnabor/suit.rsi
+  - type: Clothing
+    sprite: _UNEON/Clothing/Sponsors/unemotionaltestnabor/suit.rsi
+  - type: PressureProtection
+    highPressureMultiplier: 1
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.1
+    coolingCoefficient: 0.1
+  - type: ClothingSpeedModifier
+    walkModifier: 0.8
+    sprintModifier: 0.8
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.9
+  - type: Tag
+    tags: [Hardsuit, WhitelistChameleon]
+
+- type: entity
+  parent: [ClothingHeadBase, ClothingHeadHardsuitBase, ClothingHeadSuitWithLightBase]
+  id: UneonSponsorunemotionaltestnaborHelmet
+  name: "Шлем — unemotest"
+  description: "unemotest"
+  components:
+  - type: Sprite
+    sprite: _UNEON/Clothing/Sponsors/unemotionaltestnabor/helmet.rsi
+  - type: Clothing
+    sprite: _UNEON/Clothing/Sponsors/unemotionaltestnabor/helmet.rsi
+
+- type: vipUplinkProduct
+  id: UneonSponsorunemotionaltestnaborCloakListing
+  product: UneonSponsorunemotionaltestnaborCloak
+  category: Cloaks
+  minimumTier: 4
+  price: 5000
+  allowedAccounts:
+  - "dc3f6dc7-ae19-4d4d-8045-f46c811fc547"
+
+- type: vipUplinkProduct
+  id: UneonSponsorunemotionaltestnaborSuitListing
+  product: UneonSponsorunemotionaltestnaborSuit
+  category: Hardsuits
+  minimumTier: 4
+  price: 50000
+  allowedAccounts:
+  - "dc3f6dc7-ae19-4d4d-8045-f46c811fc547"
+
+- type: vipUplinkProduct
+  id: UneonSponsorunemotionaltestnaborHelmetListing
+  product: UneonSponsorunemotionaltestnaborHelmet
+  category: Hardsuits
+  minimumTier: 4
+  price: 10000
+  allowedAccounts:
+  - "dc3f6dc7-ae19-4d4d-8045-f46c811fc547"
