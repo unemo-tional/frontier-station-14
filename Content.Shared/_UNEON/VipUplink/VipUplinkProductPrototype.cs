@@ -7,8 +7,10 @@ namespace Content.Shared._UNEON.VipUplink;
 public sealed partial class VipUplinkProductPrototype : IPrototype
 {
     [IdDataField] public string ID { get; private set; } = default!;
-    [DataField(required: true)] public LocId Name;
+    [DataField] public LocId? Name;
     [DataField(required: true)] public EntProtoId Product;
+    [DataField] public VipUplinkCategory Category = VipUplinkCategory.Misc;
+    [DataField] public int StackAmount;
     [DataField(required: true)] public int Price;
     [DataField] public int MinimumTier = 1;
     /// <summary>SS14 account UUIDs, never character names or Discord IDs. Empty means a shared product.</summary>
@@ -16,7 +18,7 @@ public sealed partial class VipUplinkProductPrototype : IPrototype
 
     public bool IsAvailable(int tier, string account)
     {
-        return Price > 0 && MinimumTier > 0 && tier >= MinimumTier &&
+        return Price > 0 && StackAmount is >= 0 and <= 30 && MinimumTier > 0 && tier >= MinimumTier &&
                (AllowedAccounts.Count == 0 || AllowedAccounts.Contains(account));
     }
 }

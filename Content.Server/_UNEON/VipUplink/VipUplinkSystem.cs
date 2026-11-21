@@ -9,6 +9,7 @@ using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.PDA;
 using Content.Shared.Popups;
+using Content.Shared.Stacks;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -31,6 +32,7 @@ public sealed class VipUplinkSystem : EntitySystem
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
+    [Dependency] private readonly SharedStackSystem _stacks = default!;
     private readonly Dictionary<EntityUid, TimeSpan> _lastPurchase = new();
     private TimeSpan _nextRefresh;
 
@@ -114,7 +116,7 @@ public sealed class VipUplinkSystem : EntitySystem
                 foreach (var product in _prototypes.EnumeratePrototypes<VipUplinkProductPrototype>().OrderBy(p => p.ID))
                 {
                     if (product.IsAvailable(tier, account))
-                        products.Add(new VipUplinkListing(product.ID, product.Name, product.Price));
+                        products.Add(new VipUplinkListing(product));
                 }
             }
             _bank.TryGetBalance(actor, out var balance);
@@ -148,23 +150,46 @@ public sealed class VipUplinkSystem : EntitySystem
         }
 
         // Stage the item outside the world before charging. A failed prototype spawn never costs money.
-        EntityUid item;
-        try { item = Spawn(product.Product); }
+        var items = new List<EntityUid>();
+        try
+        {
+            var remaining = product.StackAmount;
+            do
+            {
+                var item = Spawn(product.Product);
+                items.Add(item);
+                if (remaining == 0)
+                    break;
+
+                var stack = Comp<StackComponent>(item);
+                var count = Math.Min(remaining, _stacks.GetMaxCount(stack));
+                if (count <= 0)
+                    throw new InvalidOperationException("The product has no usable stack capacity.");
+                _stacks.SetCount(item, count, stack);
+                remaining -= count;
+            } while (remaining > 0);
+        }
         catch (Exception e)
         {
+            foreach (var item in items)
+                QueueDel(item);
             Log.Error($"VIP uplink could not spawn product {product.ID}: {e.GetType().Name}");
             _popups.PopupEntity(Loc.GetString("uneon-vip-failed"), actor, actor);
             return;
         }
         if (!_bank.TryBankWithdraw(actor, product.Price))
         {
-            QueueDel(item);
+            foreach (var item in items)
+                QueueDel(item);
             _popups.PopupEntity(Loc.GetString("uneon-vip-failed"), actor, actor);
             return;
         }
         // Use the actor's coordinates, never a client supplied position or the PDA's ID card owner.
-        _transform.SetCoordinates(item, Transform(actor).Coordinates);
-        _hands.TryPickupAnyHand(actor, item); // Failed pickup leaves the purchase beside the character.
+        foreach (var item in items)
+        {
+            _transform.SetCoordinates(item, Transform(actor).Coordinates);
+            _hands.TryPickupAnyHand(actor, item);
+        }
         Log.Info($"VIP uplink: {session.UserId} bought {product.ID} for {product.Price}");
         _popups.PopupEntity(Loc.GetString("uneon-vip-success"), actor, actor);
         UpdateViewers(loader, loaderComp);

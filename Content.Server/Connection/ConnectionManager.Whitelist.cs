@@ -47,7 +47,9 @@ public sealed partial class ConnectionManager
         return playerCount >= whitelist.MinimumPlayers && playerCount <= whitelist.MaximumPlayers;
     }
 
-    public async Task<(bool isWhitelisted, string? denyMessage)> IsWhitelisted(PlayerConnectionWhitelistPrototype whitelist, NetUserData data, ISawmill sawmill)
+    public async Task<(bool isWhitelisted, string? denyMessage)> IsWhitelisted(
+        PlayerConnectionWhitelistPrototype whitelist, NetUserData data, ISawmill sawmill,
+        Func<Task<bool>>? hasSponsorAccess = null)
     {
         var cacheRemarks = await _db.GetAllAdminRemarks(data.UserId);
         var cachePlaytime = await _db.GetPlayTimes(data.UserId);
@@ -63,7 +65,8 @@ public sealed partial class ConnectionManager
                     denyMessage = Loc.GetString("whitelist-always-deny");
                     break;
                 case ConditionManualWhitelistMembership:
-                    matched = await CheckConditionManualWhitelist(data);
+                    matched = await CheckConditionManualWhitelist(data) ||
+                              condition.Action == ConditionAction.Allow && hasSponsorAccess != null && await hasSponsorAccess();
                     denyMessage = Loc.GetString("whitelist-manual");
                     break;
                 case ConditionManualBlacklistMembership:

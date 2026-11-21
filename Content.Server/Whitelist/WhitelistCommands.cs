@@ -1,5 +1,6 @@
 using Content.Server.Administration;
 using Content.Server.Database;
+using Content.Server._UNEON.Subscriptions;
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
 using Robust.Server.Player;
@@ -109,6 +110,7 @@ public sealed class RemoveWhitelistCommand : LocalizedCommands
 [AdminCommand(AdminFlags.Ban)]
 public sealed partial class KickNonWhitelistedCommand : LocalizedCommands
 {
+    [Dependency] private readonly IEntityManager _entities = default!;
     [Dependency] private IConfigurationManager _configManager = default!;
     [Dependency] private IServerNetManager _netManager = default!;
     [Dependency] private IPlayerManager _playerManager = default!;
@@ -128,13 +130,18 @@ public sealed partial class KickNonWhitelistedCommand : LocalizedCommands
         if (!_configManager.GetCVar(CCVars.WhitelistEnabled))
             return;
 
+        var subscriptions = _entities.System<UneonSubscriptionsSystem>();
         foreach (var session in _playerManager.NetworkedSessions)
         {
             if (await _dbManager.GetAdminDataForAsync(session.UserId) is not null)
                 continue;
 
-            if (!await _dbManager.GetWhitelistStatusAsync(session.UserId))
-                _netManager.DisconnectChannel(session.Channel, Loc.GetString("whitelist-not-whitelisted"));
+            if (await _dbManager.GetWhitelistStatusAsync(session.UserId) ||
+                session.Channel.AuthType == LoginType.LoggedIn &&
+                await subscriptions.HasSponsorWhitelistAccessAsync(session.UserId))
+                continue;
+
+            _netManager.DisconnectChannel(session.Channel, Loc.GetString("whitelist-not-whitelisted"));
         }
     }
 }
