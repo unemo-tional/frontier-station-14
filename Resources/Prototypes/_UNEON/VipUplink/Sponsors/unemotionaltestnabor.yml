@@ -47,6 +47,8 @@
     sprite: _UNEON/Clothing/Sponsors/unemotionaltestnabor/helmet.rsi
   - type: Clothing
     sprite: _UNEON/Clothing/Sponsors/unemotionaltestnabor/helmet.rsi
+  - type: Item
+    heldPrefix: off
 
 - type: vipUplinkProduct
   id: UneonSponsorunemotionaltestnaborCloakListing
