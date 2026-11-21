@@ -17,6 +17,10 @@ public sealed class CryoSleepEui : BaseEui
         _cryoSystem = cryoSys;
     }
 
+    public override void Opened() => StateDirty();
+
+    public override EuiStateBase GetNewState() => new CryoSleepEuiState(_cryoSystem.GetBodyRetention(_cryopod));
+
     public override void HandleMessage(EuiMessageBase msg)
     {
         base.HandleMessage(msg);

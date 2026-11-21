@@ -67,6 +67,7 @@ public sealed partial class CryoSleepSystem : EntitySystem
     [Dependency] private HandsSystem _hands = default!;
 
     private readonly Dictionary<NetUserId, StoredBody?> _storedBodies = new();
+    private readonly Dictionary<EntityUid, object> _bodyExpirationTokens = new();
     private EntityUid? _storageMap;
 
     public override void Initialize()
@@ -482,15 +483,30 @@ public sealed partial class CryoSleepSystem : EntitySystem
         else
         {
             // Start a timer. When it ends, the body needs to be deleted.
-            Timer.Spawn(TimeSpan.FromSeconds(_configurationManager.GetCVar(NFCCVars.CryoExpirationTime)), () =>
+            var expirationToken = new object();
+            _bodyExpirationTokens[bodyId] = expirationToken;
+            Timer.Spawn(GetBodyRetention(cryopod), () =>
             {
-                if (id != null)
-                    ResetCryosleepState(id.Value);
+                if (!_bodyExpirationTokens.TryGetValue(bodyId, out var currentToken) || currentToken != expirationToken)
+                    return;
 
-                if (!Deleted(bodyId) && Transform(bodyId).ParentUid == _storageMap)
+                _bodyExpirationTokens.Remove(bodyId);
+                if (Deleted(bodyId) || Transform(bodyId).ParentUid != _storageMap)
+                    return;
+
+                if (id != null && _storedBodies.GetValueOrDefault(id.Value)?.Body == bodyId)
+                    ResetCryosleepState(id.Value);
+                else
                     QueueDel(bodyId);
             });
         }
+    }
+
+    internal TimeSpan GetBodyRetention(EntityUid cryopod)
+    {
+        return TimeSpan.FromSeconds(TryComp<CryoSleepFallbackComponent>(cryopod, out var fallback)
+            ? fallback.BodyRetentionSeconds
+            : _configurationManager.GetCVar(NFCCVars.CryoExpirationTime));
     }
 
     /// <param name="body">If not null, will not eject if the stored body is different from that parameter.</param>
@@ -522,6 +538,7 @@ public sealed partial class CryoSleepSystem : EntitySystem
     private void OnRoundRestart(RoundRestartCleanupEvent args)
     {
         _storedBodies.Clear();
+        _bodyExpirationTokens.Clear();
     }
 
     private struct StoredBody

@@ -1,6 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
+using Content.Server._UNEON.Subscriptions;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Administration.Systems;
@@ -273,21 +276,58 @@ internal sealed partial class ChatManager : IChatManager
         }
 
         Color? colorOverride = null;
-        var wrappedMessage = Loc.GetString("chat-manager-send-ooc-wrap-message", ("playerName",player.Name), ("message", FormattedMessage.EscapeText(message)));
+        var playerName = FormattedMessage.EscapeText(player.Name);
+        var tier = _entityManager.SystemOrNull<UneonSubscriptionsSystem>()?.GetTier(player.UserId) ?? 0;
+        var sponsorName = FormatSponsorOocName(player.Name, tier);
+        var escapedMessage = FormattedMessage.EscapeText(message);
+        var wrappedMessage = Loc.GetString("chat-manager-send-ooc-wrap-message",
+            ("playerName", sponsorName ?? playerName), ("message", escapedMessage));
         if (_adminManager.HasAdminFlag(player, AdminFlags.NameColor))
         {
             var prefs = _preferencesManager.GetPreferences(player.UserId);
             colorOverride = prefs.AdminOOCColor;
         }
-        if (  _netConfigManager.GetClientCVar(player.Channel, CCVars.ShowOocPatronColor) && player.Channel.UserData.PatronTier is { } patron && PatronOocColors.TryGetValue(patron, out var patronColor))
+        if (sponsorName == null && _netConfigManager.GetClientCVar(player.Channel, CCVars.ShowOocPatronColor) && player.Channel.UserData.PatronTier is { } patron && PatronOocColors.TryGetValue(patron, out var patronColor))
         {
-            wrappedMessage = Loc.GetString("chat-manager-send-ooc-patron-wrap-message", ("patronColor", patronColor),("playerName", player.Name), ("message", FormattedMessage.EscapeText(message)));
+            wrappedMessage = Loc.GetString("chat-manager-send-ooc-patron-wrap-message",
+                ("patronColor", patronColor), ("playerName", playerName), ("message", escapedMessage));
         }
 
-        //TODO: player.Name color, this will need to change the structure of the MsgChatMessage
         ChatMessageToAll(ChatChannel.OOC, message, wrappedMessage, EntityUid.Invalid, hideChat: false, recordReplay: true, colorOverride: colorOverride, author: player.UserId);
         _discordLink.SendMessage(message, player.Name, ChatChannel.OOC);
         _adminLogger.Add(LogType.Chat, LogImpact.Low, $"OOC from {player:Player}: {message}");
+    }
+
+    internal static string? FormatSponsorOocName(string name, int tier)
+    {
+        var palette = tier switch
+        {
+            1 => ("#FFE45C", null),
+            2 => ("#527FFF", null),
+            3 => ("#B6FF46", null),
+            4 => ("#43FF66", "#17612E"),
+            5 => ("#FF65C8", "#45EAD9"),
+            _ => ((string?) null, null)
+        };
+        if (palette.Item1 is not { } start)
+            return null;
+        if (palette.Item2 is not { } end)
+            return $"[color={start}]{FormattedMessage.EscapeText(name)}[/color]";
+
+        var first = Color.FromHex(start);
+        var last = Color.FromHex(end);
+        var elements = StringInfo.ParseCombiningCharacters(name);
+        var result = new StringBuilder();
+        for (var i = 0; i < elements.Length; i++)
+        {
+            var next = i + 1 < elements.Length ? elements[i + 1] : name.Length;
+            var amount = i / (float) Math.Max(elements.Length - 1, 1);
+            var hex = Color.InterpolateBetween(first, last, amount).ToHexNoAlpha();
+            var part = FormattedMessage.EscapeText(name[elements[i]..next]);
+            result.Append($"[color={hex}]{part}[/color]");
+        }
+
+        return result.ToString();
     }
 
     private void SendAdminChat(ICommonSession player, string message)

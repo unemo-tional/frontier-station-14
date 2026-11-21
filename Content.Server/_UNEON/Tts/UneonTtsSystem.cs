@@ -15,6 +15,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Server._UNEON.Tts;
 
@@ -22,6 +23,8 @@ namespace Content.Server._UNEON.Tts;
 // https://github.com/TetrisZz/frontier-Radiant/tree/master/Content.Server/Corvax/TTS
 public sealed class UneonTtsSystem : EntitySystem
 {
+    private const string AnnouncementVoice = "templar_assassin_dota_2";
+    private const int AnnouncementMaxLength = 500;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     private readonly HttpClient _client = new(new HttpClientHandler { AllowAutoRedirect = false });
@@ -90,6 +93,36 @@ public sealed class UneonTtsSystem : EntitySystem
             if (session.Status == SessionStatus.InGame && session.AttachedEntity == entity)
                 RaiseNetworkEvent(new UneonTtsAudioEvent(radio ?? audio, null, radio: radio != null), Filter.SinglePlayer(session), recordReplay: false);
         }
+    }
+
+    public async void SpeakAnnouncement(Filter filter, string message)
+    {
+        if (!Enabled || filter.Count == 0 || !_prototypes.HasIndex<UneonTtsVoicePrototype>(AnnouncementVoice))
+            return;
+
+        message = FormattedMessage.RemoveMarkupPermissive(message).Trim();
+        if (message.Length == 0)
+            return;
+        if (message.Length > AnnouncementMaxLength)
+        {
+            var length = char.IsHighSurrogate(message[AnnouncementMaxLength - 1])
+                ? AnnouncementMaxLength - 1
+                : AnnouncementMaxLength;
+            message = message[..length];
+        }
+
+        var recipients = filter.Recipients.Where(p => p.Status == SessionStatus.InGame).ToArray();
+        if (recipients.Length == 0)
+            return;
+
+        var round = _round;
+        var audio = await Generate(AnnouncementVoice, message);
+        if (audio == null || round != _round || !Enabled)
+            return;
+
+        var connected = Filter.Empty().AddPlayers(recipients.Where(p => p.Status == SessionStatus.InGame));
+        if (connected.Count > 0)
+            RaiseNetworkEvent(new UneonTtsAudioEvent(audio, null), connected, recordReplay: false);
     }
 
     private byte[]? FilterRadioAudio(byte[] audio)
