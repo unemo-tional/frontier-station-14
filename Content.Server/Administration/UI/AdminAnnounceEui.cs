@@ -3,9 +3,11 @@ using Content.Server.Chat;
 using Content.Server.Chat.Managers;
 using Content.Server.Chat.Systems;
 using Content.Server.EUI;
+using Content.Server._UNEON.Tts;
 using Content.Shared.Administration;
 using Content.Shared.Eui;
 using Robust.Shared.Audio; // Frontier
+using Robust.Shared.Player;
 
 namespace Content.Server.Administration.UI
 {
@@ -14,11 +16,14 @@ namespace Content.Server.Administration.UI
         [Dependency] private IAdminManager _adminManager = default!;
         [Dependency] private IChatManager _chatManager = default!;
         private readonly ChatSystem _chatSystem;
+        private readonly UneonTtsSystem _tts;
 
         public AdminAnnounceEui()
         {
             IoCManager.InjectDependencies(this);
-            _chatSystem = IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<ChatSystem>();
+            var systems = IoCManager.Resolve<IEntitySystemManager>();
+            _chatSystem = systems.GetEntitySystem<ChatSystem>();
+            _tts = systems.GetEntitySystem<UneonTtsSystem>();
         }
 
         public override void Opened()
@@ -48,6 +53,7 @@ namespace Content.Server.Administration.UI
                     {
                         case AdminAnnounceType.Server:
                             _chatManager.DispatchServerAnnouncement(doAnnounce.Announcement);
+                            _tts.SpeakAnnouncement(Filter.Broadcast(), doAnnounce.Announcement);
                             break;
                         // TODO: Per-station announcement support
                         case AdminAnnounceType.Station:

@@ -3,7 +3,6 @@ using System.Linq;
 using Content.Client.CartridgeLoader.Cartridges;
 using Content.Client.Eui;
 using Content.Client.Inventory;
-using Content.Shared._NF.CCVar;
 using Content.Shared._NF.CryoSleep;
 using Content.Shared._NF.Roles.Components;
 using Content.Shared._NF.Roles.Systems;
@@ -18,7 +17,6 @@ using Content.Shared.Storage;
 using Content.Shared.Store.Components;
 using JetBrains.Annotations;
 using Robust.Client.Graphics;
-using Robust.Shared.Configuration;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
@@ -38,20 +36,6 @@ public sealed partial class CryoSleepEui : BaseEui
 
         _window = new AcceptCryoWindow();
 
-        // Try to get the player's mind.
-        if (!_entityManager.TryGetComponent(_playerEntity, out JobTrackingComponent? jobTracking)
-            || jobTracking.Job == null
-            || !SharedJobTrackingSystem.JobShouldBeReopened(jobTracking.Job.Value))
-        {
-            var configManager = IoCManager.Resolve<INetConfigurationManager>();
-            var cryoTime = TimeSpan.FromSeconds(configManager.GetCVar(NFCCVars.CryoExpirationTime));
-            _window.StoreText.Text = Loc.GetString("accept-cryo-window-prompt-stored", ("time", cryoTime));
-        }
-        else
-        {
-            _window.StoreText.Text = Loc.GetString("accept-cryo-window-prompt-not-stored");
-        }
-
         _window.OnAccept += () =>
         {
             SendMessage(new AcceptCryoChoiceMessage(AcceptCryoUiButton.Accept));
@@ -66,6 +50,18 @@ public sealed partial class CryoSleepEui : BaseEui
     }
 
     private static readonly Color WarningColor = Color.Yellow;
+
+    public override void HandleState(EuiStateBase state)
+    {
+        if (state is not CryoSleepEuiState cryo)
+            return;
+
+        var reopensJob = _entityManager.TryGetComponent(_playerEntity, out JobTrackingComponent? jobTracking)
+                         && jobTracking.Job is { } job && SharedJobTrackingSystem.JobShouldBeReopened(job);
+        _window.StoreText.Text = reopensJob
+            ? Loc.GetString("accept-cryo-window-prompt-not-stored")
+            : Loc.GetString("accept-cryo-window-prompt-stored", ("time", cryo.BodyRetention));
+    }
 
     public override void HandleMessage(EuiMessageBase msg)
     {

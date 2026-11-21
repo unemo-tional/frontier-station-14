@@ -4,6 +4,12 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._NF.CryoSleep;
 
 [Serializable, NetSerializable]
+public sealed class CryoSleepEuiState(TimeSpan bodyRetention) : EuiStateBase
+{
+    public readonly TimeSpan BodyRetention = bodyRetention;
+}
+
+[Serializable, NetSerializable]
 public enum AcceptCryoUiButton
 {
     Deny,

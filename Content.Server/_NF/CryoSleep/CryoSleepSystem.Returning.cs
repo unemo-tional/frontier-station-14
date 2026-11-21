@@ -81,6 +81,7 @@ public sealed partial class CryoSleepSystem
         }
 
         _storedBodies.Remove(id.Value);
+        _bodyExpirationTokens.Remove(body);
         _mind.ControlMob(id.Value, body);
         // Force the mob to sleep
         var sleep = EnsureComp<SleepingComponent>(body);
@@ -112,8 +113,9 @@ public sealed partial class CryoSleepSystem
         }
 
         if (body != null
-            && Transform(body.Value.Body).MapUid == _storageMap)
+            && !Deleted(body.Value.Body) && Transform(body.Value.Body).MapUid == _storageMap)
         {
+            _bodyExpirationTokens.Remove(body.Value.Body);
             QueueDel(body.Value.Body);
         }
     }
