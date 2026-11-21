@@ -32,14 +32,19 @@ public sealed class VipUplinkTest
                 Is.EqualTo(1));
             var products = server.ProtoMan.EnumeratePrototypes<VipUplinkProductPrototype>().ToArray();
             Assert.That(products.Select(p => p.ID), Is.SupersetOf(new[] { "UneonVipSteel", "UneonVipGlass", "UneonVipPlastic" }));
-            foreach (var id in new[] { "UneonVipSteel", "UneonVipGlass", "UneonVipPlastic" })
+            Assert.That(products.Select(p => p.Category).Distinct(), Is.EquivalentTo(Enum.GetValues<VipUplinkCategory>()));
+            foreach (var product in products)
             {
-                var product = products.Single(p => p.ID == id);
                 var item = entities.Spawn(product.Product);
                 Assert.That(entities.GetComponent<TransformComponent>(item).MapID, Is.EqualTo(MapId.Nullspace));
                 entities.System<SharedTransformSystem>().SetCoordinates(item, map.GridCoords);
                 Assert.That(entities.GetComponent<TransformComponent>(item).MapID, Is.EqualTo(map.MapId));
-                Assert.That(entities.GetComponent<StackComponent>(item).Count, Is.EqualTo(30));
+                if (product.Category == VipUplinkCategory.Resources)
+                {
+                    Assert.That(product.StackAmount, Is.EqualTo(30), product.ID);
+                    var stack = entities.GetComponent<StackComponent>(item);
+                    Assert.That(entities.System<SharedStackSystem>().GetMaxCount(stack), Is.Positive, product.ID);
+                }
                 entities.DeleteEntity(item);
             }
             entities.DeleteEntity(pda);

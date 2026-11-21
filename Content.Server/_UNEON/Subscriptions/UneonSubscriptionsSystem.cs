@@ -127,6 +127,23 @@ public sealed class UneonSubscriptionsSystem : EntitySystem
             ? Math.Max(0, entry.Tier) : 0;
     }
 
+    /// <summary>Whitelist access requires a current role confirmation for this login.</summary>
+    public async Task<bool> HasSponsorWhitelistAccessAsync(NetUserId user)
+    {
+        if (!_cfg.GetCVar(CCVars.UneonSubscriptionsEnabled) || !TryGetEndpoint(out var url, out var key))
+            return false;
+
+        try
+        {
+            var rights = await FetchRightsAsync(user.ToString(), url, key).ConfigureAwait(false);
+            return rights.Linked && rights.Tier > 0;
+        }
+        catch (Exception e) when (e is HttpRequestException or OperationCanceledException or JsonException or NotSupportedException)
+        {
+            return false;
+        }
+    }
+
     private bool TryGetValidEntry(string user, out UneonSubscriptionEntry? entry)
     {
         if (!_cache.TryGetValue(user, out entry))
@@ -184,13 +201,7 @@ public sealed class UneonSubscriptionsSystem : EntitySystem
     {
         if (!_busy.Add(user))
             return false;
-        var url = _cfg.GetCVar(CCVars.UneonSubscriptionsUrl).TrimEnd('/');
-        var key = _cfg.GetCVar(CCVars.UneonSubscriptionsKey);
-        // Plain HTTP is allowed only through an explicit local tunnel/development endpoint.
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
-            !(uri.Scheme == "https" || uri.Scheme == "http" && uri.IsLoopback) ||
-            !string.IsNullOrEmpty(uri.UserInfo) || !string.IsNullOrEmpty(uri.Query) ||
-            !string.IsNullOrEmpty(uri.Fragment) || key.Length < 32)
+        if (!TryGetEndpoint(out var url, out var key))
         {
             _busy.Remove(user);
             shell?.WriteError(Loc.GetString("uneon-sub-config-error"));
@@ -200,27 +211,40 @@ public sealed class UneonSubscriptionsSystem : EntitySystem
         return true;
     }
 
+    private bool TryGetEndpoint(out string url, out string key)
+    {
+        url = _cfg.GetCVar(CCVars.UneonSubscriptionsUrl).TrimEnd('/');
+        key = _cfg.GetCVar(CCVars.UneonSubscriptionsKey);
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+               (uri.Scheme == "https" || uri.Scheme == "http" && uri.IsLoopback) &&
+               string.IsNullOrEmpty(uri.UserInfo) && string.IsNullOrEmpty(uri.Query) &&
+               string.IsNullOrEmpty(uri.Fragment) && key.Length >= 32;
+    }
+
+    private async Task<RightsResponse> FetchRightsAsync(string user, string url, string key)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"{url}/v1/entitlements/{user}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
+        using var response = await _http.SendAsync(request, _shutdown.Token).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+        var data = await response.Content.ReadFromJsonAsync<RightsResponse>(cancellationToken: _shutdown.Token).ConfigureAwait(false);
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (data == null || data.UserId != user || data.Tier < 0 || data.Permissions == null ||
+            data.Permissions.Length > 256 || data.Permissions.Any(p => string.IsNullOrEmpty(p) || p.Length > 80) ||
+            data.VerifiedAt < now - 300 || data.VerifiedAt > now + 300 ||
+            (!data.Linked || data.Tier == 0) && data.Permissions.Length != 0)
+            throw new JsonException("Invalid rights response");
+
+        return data;
+    }
+
     private async Task RequestAsync(string user, string action, IConsoleShell? shell, string url, string key, string? code)
     {
         try
         {
-            using var request = new HttpRequestMessage(action == "status" ? HttpMethod.Get : HttpMethod.Post,
-                action == "status" ? $"{url}/v1/entitlements/{user}" : $"{url}/v1/{action}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
-            if (action != "status")
-                // JsonContent streams chunked HTTP/1.1 by default. Use a known length for simple API servers/proxies.
-                request.Content = new StringContent(JsonSerializer.Serialize(new { user_id = user, code }),
-                    Encoding.UTF8, "application/json");
-            using var response = await _http.SendAsync(request, _shutdown.Token).ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
             if (action == "status")
             {
-                var data = await response.Content.ReadFromJsonAsync<RightsResponse>(cancellationToken: _shutdown.Token).ConfigureAwait(false);
-                if (data == null || data.UserId != user || data.Tier < 0 || data.Permissions == null ||
-                    data.Permissions.Length > 256 || data.Permissions.Any(p => string.IsNullOrEmpty(p) || p.Length > 80) ||
-                    Math.Abs(DateTimeOffset.UtcNow.ToUnixTimeSeconds() - data.VerifiedAt) > 300 ||
-                    (!data.Linked || data.Tier == 0) && data.Permissions.Length != 0)
-                    throw new JsonException("Invalid rights response");
+                var data = await FetchRightsAsync(user, url, key).ConfigureAwait(false);
                 var entry = new UneonSubscriptionEntry { Linked = data.Linked, Tier = data.Tier,
                     Permissions = data.Permissions, ConfirmedAt = DateTimeOffset.UtcNow };
                 _completions.Enqueue(() =>
@@ -230,8 +254,17 @@ public sealed class UneonSubscriptionsSystem : EntitySystem
                     shell?.WriteLine(Loc.GetString("uneon-sub-status", ("linked", Loc.GetString(entry.Linked ? "uneon-sub-discord-linked" : "uneon-sub-discord-not-linked")),
                         ("tier", entry.Tier), ("name", SubscriptionName(entry.Tier))));
                 });
+                return;
             }
-            else if (action == "link")
+
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{url}/v1/{action}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
+            // Use a known request length for simple API servers and proxies.
+            request.Content = new StringContent(JsonSerializer.Serialize(new { user_id = user, code }),
+                Encoding.UTF8, "application/json");
+            using var response = await _http.SendAsync(request, _shutdown.Token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            if (action == "link")
             {
                 var data = await response.Content.ReadFromJsonAsync<LinkResponse>(cancellationToken: _shutdown.Token).ConfigureAwait(false);
                 if (data == null || !data.Linked)

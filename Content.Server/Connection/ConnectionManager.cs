@@ -8,6 +8,7 @@ using Content.Server.Connection.IPIntel;
 using Content.Server.Database;
 using Content.Server.GameTicking;
 using Content.Server.Preferences.Managers;
+using Content.Server._UNEON.Subscriptions;
 using Content.Shared.CCVar;
 using Content.Shared._NF.CCVar; // Frontier
 using Content.Shared.GameTicking;
@@ -256,6 +257,11 @@ namespace Content.Server.Connection
             _ticker ??= _entityManager.SystemOrNull<GameTicker>();
             var wasInGame = _ticker != null &&
                             _ticker.PlayerGameStatuses.ContainsKey(userId); // Frontier: remove status.JoinedGame check, TryGetValue<ContainsKey
+            Task<bool>? sponsorAccess = null;
+            Task<bool> HasSponsorAccess() => sponsorAccess ??= e.AuthType == LoginType.LoggedIn &&
+                _entityManager.SystemOrNull<UneonSubscriptionsSystem>() is { } subscriptions
+                    ? subscriptions.HasSponsorWhitelistAccessAsync(userId)
+                    : Task.FromResult(false);
 
             if (_cfg.GetCVar(CCVars.PanicBunkerEnabled) && adminData == null && !wasInGame) // Frontier: allow users who joined before panic bunker was enforced to reconnect
             {
@@ -266,7 +272,8 @@ namespace Content.Server.Connection
                 var record = await _db.GetPlayerRecordByUserId(userId);
                 var validAccountAge = record != null &&
                                       record.FirstSeenTime.CompareTo(DateTimeOffset.UtcNow - TimeSpan.FromMinutes(minMinutesAge)) <= 0;
-                var bypassAllowed = _cfg.GetCVar(CCVars.BypassBunkerWhitelist) && await _db.GetWhitelistStatusAsync(userId);
+                var bypassAllowed = _cfg.GetCVar(CCVars.BypassBunkerWhitelist) &&
+                    (await _db.GetWhitelistStatusAsync(userId) || await HasSponsorAccess());
 
                 // Use the custom reason if it exists & they don't have the minimum account age
                 if (customReason != string.Empty && !validAccountAge && !bypassAllowed)
@@ -310,7 +317,7 @@ namespace Content.Server.Connection
                     // End Frontier
                 }
 
-                if (!validAccountAge || !haveMinOverallTime && !bypassAllowed)
+                if ((!validAccountAge || !haveMinOverallTime) && !bypassAllowed)
                 {
                     return (ConnectionDenyReason.Panic, Loc.GetString("panic-bunker-account-denied"), null);
                 }
@@ -356,7 +363,7 @@ namespace Content.Server.Connection
                         continue;
                     }
 
-                    var whitelistStatus = await IsWhitelisted(whitelist, e.UserData, _sawmill);
+                    var whitelistStatus = await IsWhitelisted(whitelist, e.UserData, _sawmill, HasSponsorAccess);
                     if (!whitelistStatus.isWhitelisted)
                     {
                         // Not whitelisted.
