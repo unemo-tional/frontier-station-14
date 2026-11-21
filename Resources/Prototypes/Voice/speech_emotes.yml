@@ -55,6 +55,12 @@
     - chortles
     - chortling
     - chortled # Frontier
+    - смеётся
+    - смеется
+    - засмеялся
+    - засмеялась
+    - рассмеялся
+    - рассмеялась
 
 - type: emote
   id: Honk
