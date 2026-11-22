@@ -31,8 +31,7 @@ public sealed partial class TitleWindowManager
     {
         var defaultWindowTitle = _gameController.GameTitle();
 
-        // Since the game assumes the server name is MyServer and that GameHostnameInTitlebar CCVar is true by default
-        // Lets just... not show anything. This also is used to revert back to just the game title on disconnect.
+        // Show just the game title before connecting and after disconnecting.
         if (_client.RunLevel == ClientRunLevel.Initialize)
         {
             _clyde.SetWindowTitle(defaultWindowTitle);
@@ -46,9 +45,7 @@ public sealed partial class TitleWindowManager
             _clyde.SetWindowTitle(defaultWindowTitle);
     }
 
-    // Clients by default assume game.hostname_in_titlebar is true
-    // but we need to clear it as soon as we join and actually receive the servers preference on this.
-    // This will ensure we rerun OnHostnameChange and set the correct title bar name.
+    // Refresh the title when the server’s preference arrives or changes.
     private void OnHostnameTitleChange(bool colonthree)
     {
         OnHostnameChange(_cfg.GetCVar(CVars.GameHostName));
