@@ -114,6 +114,7 @@ public sealed partial class NFAdventureRuleSystem : GameRuleSystem<NFAdventureRu
                 summaryText = Loc.GetString("adventure-list-profit", ("amount", BankSystemExtensions.ToSpesoString(profit)));
             }
             ev.AddLine($"- {playerInfo.Name} {summaryText}");
+            ev.BankResults.Add((playerInfo.Name, profit));
             allScore.Add(new Tuple<string, int>(playerInfo.Name, profit));
         }
 

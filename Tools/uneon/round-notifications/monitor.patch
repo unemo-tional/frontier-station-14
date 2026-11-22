@@ -1,0 +1,109 @@
+--- bot.py
++++ bot.py
+@@ -125,6 +125,7 @@
+         self.last_round_seconds: int | None = None
+         self.last_round_marker: str | None = None
+         self.start_notice_pending = False
++        self.last_end_notice: list[int | str] | None = None
+         self.load_round_state()
+ 
+     def load_round_state(self) -> None:
+@@ -136,6 +137,7 @@
+                 marker = state.get("last_round_marker")
+                 self.last_round_marker = str(marker) if marker is not None else None
+                 self.start_notice_pending = bool(state.get("start_notice_pending", False))
++                self.last_end_notice = state.get("last_end_notice")
+         except FileNotFoundError:
+             pass
+         except (OSError, ValueError, TypeError) as exc:
+@@ -151,6 +153,7 @@
+                         "last_round_seconds": self.last_round_seconds,
+                         "last_round_marker": self.last_round_marker,
+                         "start_notice_pending": self.start_notice_pending,
++                        "last_end_notice": self.last_end_notice,
+                     }
+                 ),
+                 encoding="utf-8",
+@@ -159,7 +162,9 @@
+         except OSError as exc:
+             log.error("Could not save round state: %s", exc)
+ 
+     def observe_round(self, data: dict[str, Any]) -> None:
++        if data.get("run_level", 1) != 1:
++            return
+         time_field = os.getenv("ROUND_TIME_FIELD", "round_time").strip()
+         elapsed = parse_duration(get_field(data, time_field)) if time_field else None
+         marker_fields = [
+@@ -220,6 +225,59 @@
+             log.error("Could not send round start alert: %s", exc)
+             return False
+ 
++    async def send_round_result(self, status: dict[str, Any]) -> None:
++        result = status.get("last_round_result")
++        if not isinstance(result, dict):
++            return
++        round_id = result.get("round_id")
++        ended_at = result.get("ended_at")
++        if not isinstance(round_id, int) or not isinstance(ended_at, str) or not ended_at:
++            return
++        marker = [round_id, ended_at]
++        if marker == self.last_end_notice:
++            return
++
++        try:
++            channel_id = int(os.getenv("ROUND_CHANNEL_ID", "").strip())
++            channel = self.get_channel(channel_id)
++            if channel is None:
++                channel = await self.fetch_channel(channel_id)
++            if not isinstance(channel, (discord.Thread, discord.TextChannel)):
++                log.error("ROUND_CHANNEL_ID is not a text channel or thread")
++                return
++            duration = format_duration(int(result["duration_seconds"]))
++            participants = int(result["participants"])
++            map_name = discord.utils.escape_markdown(str(result.get("map") or "неизвестна")[:100])
++            preset = discord.utils.escape_markdown(str(result.get("preset") or "не указан")[:100])
++            message = (
++                f"🏁 Раунд #{round_id} завершён\n"
++                f"**Итоги** · ⏱️ {duration} · 👥 Участников: {participants}\n"
++                f"Карта: {map_name} · Режим: {preset}"
++            )
++            rows = []
++            for entry in result.get("bank_results") or []:
++                name = " ".join(entry["character"].split())
++                change = f'{entry["change"]:+,}'.replace(",", " ")
++                rows.append(f'{name}: {change} кр.')
++            kwargs = {"allowed_mentions": discord.AllowedMentions.none()}
++            if rows:
++                heading = "\n\n**Прибыль и убытки персонажей**"
++                details = "\n".join(discord.utils.escape_markdown(row) for row in rows)
++                if len((message + heading + "\n" + details).encode("utf-16-le")) <= 4000:
++                    message += heading + "\n" + details
++                else:
++                    from io import BytesIO
++                    message += heading + " — в приложенном файле."
++                    kwargs["file"] = discord.File(
++                        BytesIO("\n".join(rows).encode("utf-8")),
++                        filename=f"round-{round_id}-bank-results.txt",
++                    )
++            await channel.send(message, **kwargs)
++            self.last_end_notice = marker
++            self.save_round_state()
++        except (KeyError, TypeError, ValueError, discord.HTTPException) as exc:
++            log.error("Could not send round result: %s", exc)
++
+     async def setup_hook(self) -> None:
+         if not self.status_url or "GAME_SERVER_HOST" in self.status_url:
+             raise RuntimeError("Set SS14_STATUS_URL in the environment file before starting")
+@@ -252,6 +310,11 @@
+         try:
+             status = await self.fetch_status()
+             self.observe_round(status)
++            await self.send_round_result(status)
+-            if self.start_notice_pending and await self.send_round_start_notice():
++            if (
++                self.start_notice_pending
++                and status.get("run_level", 1) == 1
++                and await self.send_round_start_notice()
++            ):
+                 self.start_notice_pending = False
+                 self.save_round_state()
