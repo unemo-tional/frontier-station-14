@@ -8,6 +8,7 @@ max_connections = 16
 enabled = true
 
 [game]
+hostname_in_titlebar = false
 hostname = "[RU] UNEON — Анеон | Frontier"
 desc = "UNEON — тестовый сервер сектора Анеон."
 lobbyenabled = true
