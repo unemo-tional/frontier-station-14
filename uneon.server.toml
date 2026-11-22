@@ -8,6 +8,7 @@ max_connections = 256
 enabled = true
 
 [game]
+hostname_in_titlebar = false
 hostname = "[RU] UNEON — Анеон | Frontier"
 desc = "UNEON — русскоязычный сервер на базе Frontier. Собери экипаж, приобрети корабль и отправляйся исследовать сектор Анеон: экспедиции, торговля, добыча ресурсов и жизнь на границе освоенного космоса."
 lobbyenabled = true
