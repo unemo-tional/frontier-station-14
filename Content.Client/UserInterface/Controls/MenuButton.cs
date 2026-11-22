@@ -26,6 +26,7 @@ public sealed partial class MenuButton : ContainerButton
     private Color HoveredColor => HasStyleClass(StyleClassRedTopButton) ? ColorRedHovered : ColorHovered;
 
     private BoundKeyFunction? _function;
+    private string _caption = "";
     private readonly BoxContainer _root;
     private readonly TextureRect? _buttonIcon;
     private readonly Label? _buttonLabel;
@@ -33,13 +34,23 @@ public sealed partial class MenuButton : ContainerButton
     public string AppendStyleClass { set => AddStyleClass(value); }
     public Texture? Icon { get => _buttonIcon!.Texture; set => _buttonIcon!.Texture = value; }
 
+    public string Caption
+    {
+        get => _caption;
+        set
+        {
+            _caption = value;
+            UpdateLabel();
+        }
+    }
+
     public BoundKeyFunction? BoundKey
     {
         get => _function;
         set
         {
             _function = value;
-            _buttonLabel!.Text = _function == null ? "" : BoundKeyHelper.ShortKeyName(_function.Value);
+            UpdateLabel();
         }
     }
 
@@ -95,12 +106,17 @@ public sealed partial class MenuButton : ContainerButton
 
     private void OnKeyBindingChanged(IKeyBinding obj)
     {
-        _buttonLabel!.Text = _function == null ? "" : BoundKeyHelper.ShortKeyName(_function.Value);
+        UpdateLabel();
     }
 
     private void OnKeyBindingChanged()
     {
-        _buttonLabel!.Text = _function == null ? "" : BoundKeyHelper.ShortKeyName(_function.Value);
+        UpdateLabel();
+    }
+
+    private void UpdateLabel()
+    {
+        _buttonLabel!.Text = _function is { } function ? BoundKeyHelper.ShortKeyName(function) : _caption;
     }
 
     protected override void StylePropertiesChanged()

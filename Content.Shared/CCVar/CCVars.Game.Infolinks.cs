@@ -41,6 +41,12 @@ public sealed partial class CCVars
         CVarDef.Create("infolinks.patreon", "", CVar.SERVER | CVar.REPLICATED);
 
     /// <summary>
+    ///     Link to the server's Boosty page in the in-game menu bar.
+    /// </summary>
+    public static readonly CVarDef<string> InfoLinksBoosty =
+        CVarDef.Create("infolinks.boosty", "", CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>
     ///     Link to the bug report form.
     /// </summary>
     public static readonly CVarDef<string> InfoLinksBugReport =
