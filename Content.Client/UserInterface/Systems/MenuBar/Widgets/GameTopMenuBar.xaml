@@ -36,10 +36,10 @@
     <ui:MenuButton
         Name="BoostyButton"
         Access="Internal"
-        Icon="{xe:Tex '/Textures/Interface/examine-star.png'}"
-        Caption="Boosty"
+        Icon="{xe:Tex '/Textures/Interface/boosty-bolt.png'}"
+        Caption="&#160;"
         ToolTip="{Loc 'game-hud-open-boosty-button-tooltip'}"
-        MinSize="62 64"
+        MinSize="42 64"
         HorizontalExpand="True"
         Visible="False"
         ToggleMode="False"
