@@ -34,6 +34,18 @@
         AppendStyleClass="{x:Static style:StyleBase.ButtonSquare}"
         />
     <ui:MenuButton
+        Name="BoostyButton"
+        Access="Internal"
+        Icon="{xe:Tex '/Textures/Interface/examine-star.png'}"
+        Caption="Boosty"
+        ToolTip="{Loc 'game-hud-open-boosty-button-tooltip'}"
+        MinSize="62 64"
+        HorizontalExpand="True"
+        Visible="False"
+        ToggleMode="False"
+        AppendStyleClass="{x:Static style:StyleBase.ButtonSquare}"
+        />
+    <ui:MenuButton
         Name="CharacterButton"
         Access="Internal"
         Icon="{xe:Tex '/Textures/Interface/character.svg.192dpi.png'}"

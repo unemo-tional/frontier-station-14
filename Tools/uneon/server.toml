@@ -27,5 +27,6 @@ mode = 1
 advertise = false
 
 [infolinks]
+boosty = "https://boosty.to/unemo"
 discord = "https://discord.gg/P7GBadbPaY"
 github = "https://github.com/unemo-tional/frontier-station-14"
