@@ -32,9 +32,13 @@ public sealed class VipUplinkTest
                 Is.EqualTo(1));
             var products = server.ProtoMan.EnumeratePrototypes<VipUplinkProductPrototype>().ToArray();
             Assert.That(products.Select(p => p.ID), Is.SupersetOf(new[] { "UneonVipSteel", "UneonVipGlass", "UneonVipPlastic" }));
-            Assert.That(products.Select(p => p.Category).Distinct(), Is.EquivalentTo(Enum.GetValues<VipUplinkCategory>()));
+            Assert.That(products.Where(p => p.AllowedAccounts.Count == 0).Select(p => p.Category).Distinct(),
+                Is.EquivalentTo(Enum.GetValues<VipUplinkCategory>().Where(category => category != VipUplinkCategory.Personal)));
             foreach (var product in products)
             {
+                var listing = new VipUplinkListing(product);
+                var expectedCategory = product.AllowedAccounts.Count > 0 ? VipUplinkCategory.Personal : product.Category;
+                Assert.That(listing.Category, Is.EqualTo(expectedCategory), product.ID);
                 var item = entities.Spawn(product.Product);
                 Assert.That(entities.GetComponent<TransformComponent>(item).MapID, Is.EqualTo(MapId.Nullspace));
                 entities.System<SharedTransformSystem>().SetCoordinates(item, map.GridCoords);

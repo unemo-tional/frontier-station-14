@@ -10,7 +10,8 @@ public enum VipUplinkCategory : byte
     Hardsuits,
     Food,
     Cloaks,
-    Misc
+    Misc,
+    Personal
 }
 
 [Serializable, NetSerializable]
@@ -23,11 +24,12 @@ public sealed class VipUplinkBuyMessage : CartridgeMessageEvent
 [Serializable, NetSerializable]
 public sealed class VipUplinkState : BoundUserInterfaceState
 {
-    public readonly bool Allowed;
+    public readonly int Tier;
+    public bool Allowed => Tier > 0;
     public readonly int Balance;
     public readonly List<VipUplinkListing> Products;
-    public VipUplinkState(bool allowed, int balance, List<VipUplinkListing> products)
-    { Allowed = allowed; Balance = balance; Products = products; }
+    public VipUplinkState(int tier, int balance, List<VipUplinkListing> products)
+    { Tier = tier; Balance = balance; Products = products; }
 }
 
 [Serializable, NetSerializable]
@@ -46,7 +48,7 @@ public sealed class VipUplinkListing
         Name = product.Name?.ToString();
         Price = product.Price;
         Prototype = product.Product.Id;
-        Category = product.Category;
+        Category = product.AllowedAccounts.Count > 0 ? VipUplinkCategory.Personal : product.Category;
         StackAmount = product.StackAmount;
     }
 }

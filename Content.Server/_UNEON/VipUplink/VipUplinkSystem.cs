@@ -121,7 +121,7 @@ public sealed class VipUplinkSystem : EntitySystem
             }
             _bank.TryGetBalance(actor, out var balance);
             _ui.ServerSendUiMessage(loader, component.UiKey,
-                new VipUplinkStateMessage(new VipUplinkState(tier > 0, balance, products)), actor);
+                new VipUplinkStateMessage(new VipUplinkState(tier, balance, products)), actor);
         }
     }
 
