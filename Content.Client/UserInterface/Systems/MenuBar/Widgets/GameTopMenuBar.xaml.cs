@@ -4,6 +4,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Configuration;
+using System.Text.RegularExpressions;
 
 namespace Content.Client.UserInterface.Systems.MenuBar.Widgets
 {
@@ -12,15 +13,15 @@ namespace Content.Client.UserInterface.Systems.MenuBar.Widgets
     {
         private readonly IConfigurationManager _cfg = IoCManager.Resolve<IConfigurationManager>();
         private readonly IUriOpener _uriOpener = IoCManager.Resolve<IUriOpener>();
-        private Uri? _boostyUri;
+        private string? _boostyUrl;
 
         public GameTopMenuBar()
         {
             RobustXamlLoader.Load(this);
             BoostyButton.OnPressed += _ =>
             {
-                if (_boostyUri != null)
-                    _uriOpener.OpenUri(_boostyUri);
+                if (_boostyUrl != null)
+                    _uriOpener.OpenUri(_boostyUrl);
             };
         }
 
@@ -38,21 +39,8 @@ namespace Content.Client.UserInterface.Systems.MenuBar.Widgets
 
         private void UpdateBoostyLink(string url)
         {
-            _boostyUri = null;
-            if (!string.IsNullOrWhiteSpace(url))
-            {
-                try
-                {
-                    var uri = new Uri(url);
-                    if (uri.Scheme == Uri.UriSchemeHttps && uri.Host.Equals("boosty.to", StringComparison.OrdinalIgnoreCase))
-                        _boostyUri = uri;
-                }
-                catch (FormatException)
-                {
-                    // Leave the button hidden when the server link is malformed.
-                }
-            }
-            BoostyButton.Visible = _boostyUri != null;
+            _boostyUrl = Regex.IsMatch(url, @"\Ahttps://boosty\.to/[a-zA-Z0-9_-]+/?\z") ? url : null;
+            BoostyButton.Visible = _boostyUrl != null;
         }
     }
 }
