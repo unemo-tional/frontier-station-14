@@ -20,7 +20,7 @@ namespace Content.Client.UserInterface.Systems.MenuBar.Widgets
             BoostyButton.OnPressed += _ =>
             {
                 if (_boostyUri != null)
-                    _uriOpener.OpenUri(_boostyUri.AbsoluteUri);
+                    _uriOpener.OpenUri(_boostyUri);
             };
         }
 
@@ -38,10 +38,20 @@ namespace Content.Client.UserInterface.Systems.MenuBar.Widgets
 
         private void UpdateBoostyLink(string url)
         {
-            _boostyUri = Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
-                uri.Scheme == Uri.UriSchemeHttps && uri.Host.Equals("boosty.to", StringComparison.OrdinalIgnoreCase)
-                ? uri
-                : null;
+            _boostyUri = null;
+            if (!string.IsNullOrWhiteSpace(url))
+            {
+                try
+                {
+                    var uri = new Uri(url);
+                    if (uri.Scheme == Uri.UriSchemeHttps && uri.Host.Equals("boosty.to", StringComparison.OrdinalIgnoreCase))
+                        _boostyUri = uri;
+                }
+                catch (FormatException)
+                {
+                    // Leave the button hidden when the server link is malformed.
+                }
+            }
             BoostyButton.Visible = _boostyUri != null;
         }
     }
