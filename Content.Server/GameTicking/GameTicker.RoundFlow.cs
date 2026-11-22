@@ -490,7 +490,7 @@ namespace Content.Server.GameTicking
 
             try
             {
-                ShowRoundEndScoreboard(text);
+                ShowRoundEndScoreboard(text, saveStatusResult: true);
             }
             catch (Exception e)
             {
@@ -507,7 +507,9 @@ namespace Content.Server.GameTicking
             }
         }
 
-        public void ShowRoundEndScoreboard(string text = "")
+        public void ShowRoundEndScoreboard(string text = "") => ShowRoundEndScoreboard(text, saveStatusResult: false);
+
+        private void ShowRoundEndScoreboard(string text, bool saveStatusResult)
         {
             // Log end of round
             _adminLogger.Add(LogType.EmergencyShuttle, LogImpact.High, $"Round ended, showing summary");
@@ -606,6 +608,9 @@ namespace Content.Server.GameTicking
                 sound,
                 customObjectiveText // Frontier
             );
+            if (saveStatusResult)
+                SaveRoundStatusResult(roundEndMessageEvent, textEv.BankResults);
+
             RaiseNetworkEvent(roundEndMessageEvent);
             RaiseLocalEvent(roundEndMessageEvent);
 
@@ -993,6 +998,8 @@ namespace Content.Server.GameTicking
         ///     Text to display in the round end summary screen.
         /// </summary>
         public string Text { get; private set; } = string.Empty;
+
+        internal List<(string Character, int Change)> BankResults { get; } = new();
 
         /// <summary>
         ///     Invoke this method to add text to the round end summary screen.

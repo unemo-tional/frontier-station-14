@@ -21,6 +21,39 @@ namespace Content.Server.GameTicking
         /// </summary>
         [ViewVariables]
         private DateTime _roundStartDateTime;
+        private JsonObject? _lastRoundResult;
+
+        private void SaveRoundStatusResult(RoundEndMessageEvent result, List<(string Character, int Change)> bankResults)
+        {
+            var balances = new JsonArray();
+            foreach (var (character, change) in bankResults.OrderByDescending(row => row.Change))
+            {
+                balances.Add(new JsonObject
+                {
+                    ["character"] = character,
+                    ["change"] = change,
+                });
+            }
+
+            var snapshot = new JsonObject
+            {
+                ["round_id"] = result.RoundId,
+                ["started_at"] = _roundStartDateTime.ToString("o"),
+                ["ended_at"] = DateTime.UtcNow.ToString("o"),
+                ["duration_seconds"] = (long) result.RoundDuration.TotalSeconds,
+                ["map"] = _gameMapManager.GetSelectedMap()?.MapName,
+                ["preset"] = result.GamemodeTitle,
+                ["bank_results"] = balances,
+                ["participants"] = result.AllPlayersEndInfo
+                    .Where(player => !player.Observer && player.PlayerGuid.HasValue)
+                    .Select(player => player.PlayerGuid)
+                    .Distinct()
+                    .Count(),
+            };
+
+            lock (_statusShellLock)
+                _lastRoundResult = snapshot;
+        }
 
         /// <summary>
         ///     For access to CVars in status responses.
@@ -56,6 +89,8 @@ namespace Content.Server.GameTicking
                 jObject["soft_max_players"] = _cfg.GetCVar(CCVars.SoftMaxPlayers);
                 jObject["panic_bunker"] = _cfg.GetCVar(CCVars.PanicBunkerEnabled);
                 jObject["run_level"] = (int) _runLevel;
+                if (_lastRoundResult != null)
+                    jObject["last_round_result"] = _lastRoundResult.DeepClone();
                 if (preset != null)
                     jObject["preset"] = Loc.GetString(preset.ModeTitle);
                 if (_runLevel >= GameRunLevel.InRound)
