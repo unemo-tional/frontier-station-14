@@ -370,11 +370,17 @@ namespace Content.Server.RoundEnd
             }
             else // Normal case where the shuttle hasn't been called yet
             {
-                return AutoCallStartTime + TimeSpan.FromMinutes(mins) + DefaultCountdownDuration;
+                return AutoCallStartTime + TimeSpan.FromMinutes(mins) + GetAutoCallCountdown();
             }
 
         }
         // End Frontier
+
+        private TimeSpan GetAutoCallCountdown()
+        {
+            var minutes = _cfg.GetCVar(CCVars.EmergencyShuttleAutoCallCountdown);
+            return minutes > 0 ? TimeSpan.FromMinutes(minutes) : DefaultCountdownDuration;
+        }
 
         public override void Update(float frameTime)
         {
@@ -385,7 +391,8 @@ namespace Content.Server.RoundEnd
             {
                 if (!_shuttle.EmergencyShuttleArrived && ExpectedCountdownEnd is null)
                 {
-                    RequestRoundEnd(null, false, "nf-round-end-system-shuttle-auto-called-announcement");// Frontier
+                    RequestRoundEnd(GetAutoCallCountdown(), checkCooldown: false,
+                        text: "nf-round-end-system-shuttle-auto-called-announcement");
                     _autoCalledBefore = true;
                 }
 
