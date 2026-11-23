@@ -16,7 +16,8 @@ lobbyduration = 180
 map = "Frontier"
 
 [shuttle]
-auto_call_time = 480
+auto_call_time = 690
+auto_call_countdown = 30
 
 [console]
 loginlocal = true

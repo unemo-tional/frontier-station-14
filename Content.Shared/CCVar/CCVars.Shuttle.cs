@@ -177,6 +177,12 @@ public sealed partial class CCVars
         CVarDef.Create("shuttle.auto_call_time", 360, CVar.SERVERONLY); // Frontier: 90<360
 
     /// <summary>
+    ///     Countdown in minutes after an automatic shuttle call. Zero uses the default countdown.
+    /// </summary>
+    public static readonly CVarDef<int> EmergencyShuttleAutoCallCountdown =
+        CVarDef.Create("shuttle.auto_call_countdown", 0, CVar.SERVERONLY);
+
+    /// <summary>
     ///     Time in minutes after the round was extended (by recalling the shuttle) to call
     ///     the shuttle again.
     /// </summary>
