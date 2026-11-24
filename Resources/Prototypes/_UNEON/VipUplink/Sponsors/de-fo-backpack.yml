@@ -8,8 +8,6 @@
   components:
   - type: Sprite
     sprite: _UNEON/Clothing/Sponsors/de-fo-backpack/cloak.rsi
-  - type: Clothing
-    sprite: _UNEON/Clothing/Sponsors/de-fo-backpack/cloak.rsi
 
 # Jumpsuit
 - type: entity
@@ -301,7 +299,7 @@
 
 # Hardsuit
 - type: entity
-  parent: ClothingOuterHardsuitAtmos
+  parent: [ClothingHeadBase, ClothingHeadHardsuitBase, ClothingHeadSuitWithLightBase]
   id: ClothingOuterHardsuitdeFOA
   name: скафандр "deFo"
   description: Изготовлено на заказ компанией "deFo".
@@ -328,14 +326,14 @@
         Radiation: 0.5
         Caustic: 0.5
   - type: Tag
-    tags: [Hardsuit]
+    tags: [] # ignore "WhitelistChameleon" tag
   - type: HideLayerClothing
     slots:
     - Tail
     hideOnToggle: true
 
 - type: entity
-  parent: [ClothingHeadBase, ClothingHeadHardsuitBase, ClothingHeadSuitWithLightBase]
+  parent: [ ClothingHeadHardsuitBase, ClothingHeadSuitWithLightBase ]
   id: ClothingHeadHelmetHardsuitdeFOA
   categories: [ HideSpawnMenu ]
   name: шлем "deFo"
@@ -353,6 +351,54 @@
     lowPressureMultiplier: 1000
   - type: Tag
     tags: [] # ignore "WhitelistChameleon" tag
+  - type: Item
+    heldPrefix: off
+
+# Paper
+- type: entity
+  parent: PaperPrintedCentcomm
+  id: PaperLawsdeFoA
+  name: распечатанный документ
+  description: Лист бумаги с заголовком центкома. Страшно даже смотреть на него.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Paper
+    stampState: paper_stamp-centcom
+    stampedBy:
+    - stampedColor: '#006600FF'
+      stampedName: Центральное Командование
+    - stampedColor: '#00BE00FF'
+      stampedName: Одобрено
+    content: |2
+
+          [head=3]Приказ на разрешение на использования снаряжения[/head]
+      ЦК-КОМ
+      ═════════════════════════════════════
+      Дата: 00:42 11.04.2708
+      Составитель документа: Шарлотта Зимина
+      Должность составителя: Оператор Станции Центрального Командования
+      ═════════════════════════════════════
+      Уважаемое командование cтанции. Данный член экипажа имеет полное право на ношение следующего снаряжения
+        - рюкзак "deFo"
+        - скафандр "deFo"
+        - маска "deFo"
+        - перчатки "deFo"
+        - визор "deFo"
+        - улучшенные магнитные ботинки "deFo"
+        - комбинезон "deFo"
+        - плащ компании "deFo"
+        - РПС "deFo"
+          - Мультитул "LuaTech"
+          - Т-лучевой сканер "LuaTech"
+          - Челюсти жизни "LuaTech"
+          - Сварочный аппарат "LuaTech"
+          - Электродрель "LuaTech"
+          - Ручной сканер массы "LuaTech"
+          - Атмос голопроектор "LuaTech"
+          - Газоанализатор "LuaTech"
+      Игнорирование данного приказа будет расчитываться как нарушение статьи [bold][color=red]207[/color] корпоративного закона[/bold]. Относитесь к данному приказу ответственно и не игнорируйте его.
+      ═════════════════════════════════════
+      Место для печатей
 
 # Backpack
 - type: entity
@@ -371,6 +417,7 @@
     - 0,0,11,5
   - type: StorageFill
     contents:
+    - id: PaperLawsdeFoA
     - id: ClothingOuterHardsuitdeFOA
     - id: ClothingMaskdeFOA
     - id: GlovesdeFOA
@@ -379,14 +426,3 @@
     - id: ClothingShoesBootsdeFOA
     - id: ClothingUniformdeFOA
     - id: ClothingNeckCapedeFOA
-
-# Покупка выдаёт один рюкзак со всем комплектом.
-- type: vipUplinkProduct
-  id: UneonVipDeFoBackpack
-  product: ClothingBackpackdeFoA
-  category: Misc
-  price: 1      # Пример цены в банковских кредитах персонажа.
-  minimumTier: 4   # Пример. С этим значением подходят уровни 4 и 5.
-  allowedAccounts:
-  - unemotional
-  - White_Cloud
