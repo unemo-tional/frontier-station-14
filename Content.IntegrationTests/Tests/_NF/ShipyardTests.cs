@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System.Linq;
 using Content.Client._NF.Shipyard.UI;
 using Content.Server.Cargo.Systems;
