@@ -105,17 +105,19 @@ public sealed class VipUplinkSystem : EntitySystem
             var products = new List<VipUplinkListing>();
             var tier = 0;
             var account = "";
+            string? login = null;
             if (_players.TryGetSessionByEntity(actor, out var session))
             {
                 tier = _subscriptions.GetTier(session.UserId);
                 account = session.UserId.ToString();
+                login = session.Name;
             }
             // No other subscriber ever receives another account's personal suit in this response.
             if (tier > 0)
             {
                 foreach (var product in _prototypes.EnumeratePrototypes<VipUplinkProductPrototype>().OrderBy(p => p.ID))
                 {
-                    if (product.IsAvailable(tier, account))
+                    if (product.IsAvailable(tier, account, login))
                         products.Add(new VipUplinkListing(product));
                 }
             }
@@ -142,7 +144,7 @@ public sealed class VipUplinkSystem : EntitySystem
         _lastPurchase[actor] = _timing.CurTime;
         if (string.IsNullOrEmpty(message.ProductId) || message.ProductId.Length > 128 ||
             !_prototypes.TryIndex<VipUplinkProductPrototype>(message.ProductId, out var product) ||
-            !product.IsAvailable(_subscriptions.GetTier(session.UserId), session.UserId.ToString()) ||
+            !product.IsAvailable(_subscriptions.GetTier(session.UserId), session.UserId.ToString(), session.Name) ||
             !_bank.TryGetBalance(actor, out var balance) || balance < product.Price)
         {
             _popups.PopupEntity(Loc.GetString("uneon-vip-failed"), actor, actor);

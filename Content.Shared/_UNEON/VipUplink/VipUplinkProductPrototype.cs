@@ -1,3 +1,4 @@
+using System.Linq;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._UNEON.VipUplink;
@@ -13,12 +14,13 @@ public sealed partial class VipUplinkProductPrototype : IPrototype
     [DataField] public int StackAmount;
     [DataField(required: true)] public int Price;
     [DataField] public int MinimumTier = 1;
-    /// <summary>SS14 account UUIDs, never character names or Discord IDs. Empty means a shared product.</summary>
+    /// <summary>SS14 account UUIDs or login names. Empty means a shared product.</summary>
     [DataField] public HashSet<string> AllowedAccounts = new();
 
-    public bool IsAvailable(int tier, string account)
+    public bool IsAvailable(int tier, string account, string? login = null)
     {
         return Price > 0 && StackAmount is >= 0 and <= 30 && MinimumTier > 0 && tier >= MinimumTier &&
-               (AllowedAccounts.Count == 0 || AllowedAccounts.Contains(account));
+               (AllowedAccounts.Count == 0 || AllowedAccounts.Contains(account) ||
+                (login != null && AllowedAccounts.Any(allowed => string.Compare(allowed, login, System.StringComparison.OrdinalIgnoreCase) == 0)));
     }
 }
