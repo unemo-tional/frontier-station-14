@@ -23,7 +23,7 @@ public sealed class ShipyardTest
     [TestCase("Honker", null)]
     public async Task ShuttlePreviewLoadsOnClient(string vesselId, string? visibleSprite)
     {
-        await using var pair = await PoolManager.GetServerClient();
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var client = pair.Client;
         var entities = client.ResolveDependency<IEntityManager>();
         var prototypes = client.ResolveDependency<IPrototypeManager>();
