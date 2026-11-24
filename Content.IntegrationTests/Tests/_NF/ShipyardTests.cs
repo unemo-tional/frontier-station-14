@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Client._NF.Shipyard.UI;
 using Content.Server.Cargo.Systems;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Robust.Server.GameObjects;
@@ -7,12 +8,56 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
+using SpriteComponent = Robust.Client.GameObjects.SpriteComponent;
 
 namespace Content.IntegrationTests.Tests._NF;
 
 [TestFixture]
 public sealed class ShipyardTest
 {
+    [TestCase("Firefighter", "ChairPilotSeat")]
+    [TestCase("Duchess", null)]
+    [TestCase("Hunter", null)]
+    [TestCase("Honker", null)]
+    public async Task ShuttlePreviewLoadsOnClient(string vesselId, string? visibleSprite)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var client = pair.Client;
+        var entities = client.ResolveDependency<IEntityManager>();
+        var prototypes = client.ResolveDependency<IPrototypeManager>();
+
+        await client.WaitAssertion(() =>
+        {
+            var vessel = prototypes.EnumeratePrototypes<VesselPrototype>()
+                .First(v => v.ID == vesselId);
+            var preview = entities.System<ShipyardPreviewRenderSystem>();
+            Assert.That(preview.TryBuildGrid(vessel, out var map, out _, out _, out var layout), Is.True);
+            try
+            {
+                Assert.That(layout?.Tiles, Is.Positive);
+                if (visibleSprite == null)
+                    return;
+
+                var sprites = entities.AllEntityQueryEnumerator<SpriteComponent, MetaDataComponent, TransformComponent>();
+                while (sprites.MoveNext(out _, out var sprite, out var metadata, out var transform))
+                {
+                    if (transform.MapUid != map || metadata.EntityPrototype?.ID != visibleSprite)
+                        continue;
+
+                    Assert.That(sprite.AllLayers.Any(layer => layer.Visible), Is.True);
+                    return;
+                }
+
+                Assert.Fail($"The {vesselId} preview did not load its {visibleSprite} sprite.");
+            }
+            finally
+            {
+                entities.DeleteEntity(map);
+            }
+        });
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task CheckAllShuttleGrids()
     {

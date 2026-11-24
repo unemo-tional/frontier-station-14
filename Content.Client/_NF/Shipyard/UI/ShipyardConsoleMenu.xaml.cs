@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Client.Guidebook;
 using Content.Client.UserInterface.Controls;
 using Content.Client._NF.Shipyard.BUI;
 using Content.Shared._NF.Bank;
@@ -43,7 +44,9 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
     private List<string> _lastUnavailableProtos = new();
     private bool _freeListings = false;
     private bool _validId = false;
-    private ConfirmButton? _currentlyConfirmingButton = null;
+    [Dependency] private IEntitySystemManager _entitySystems = default!;
+    private VesselPrototype? _selectedVessel;
+    private readonly Dictionary<string, (VesselPrototype Vessel, string Price, bool CanPurchase, Button Button)> _listings = new();
 
     public ShipyardConsoleMenu()
     {
@@ -56,6 +59,17 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
         Engines.OnItemSelected += OnEngineItemSelected;
         Atmosphere.OnItemSelected += OnAtmosphereItemSelected;
         SortBy.OnItemSelected += OnSortByItemSelected;
+        PreviewView.StateChanged += RefreshPreview;
+        PreviewFitButton.OnPressed += _ => PreviewView.FitWhole();
+        PreviewZoomInButton.OnPressed += _ => PreviewView.ZoomIn();
+        PreviewZoomOutButton.OnPressed += _ => PreviewView.ZoomOut();
+        PurchaseButton.OnPressed += _ => PurchaseSelectedVessel();
+        GuidebookButton.OnPressed += _ =>
+        {
+            if (_selectedVessel?.GuidebookPage is { } page)
+                _entitySystems.GetEntitySystem<GuidebookSystem>().OpenHelp(new List<ProtoId<Content.Shared.Guidebook.GuideEntryPrototype>> { page });
+        };
+        RefreshPreview();
         SellShipButton.OnPressed += (args) => { OnSellShip?.Invoke(args); };
     }
 
@@ -121,6 +135,7 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
     public void PopulateProducts(List<string> availablePrototypes, List<string> unavailablePrototypes, bool free, bool canPurchase)
     {
         Vessels.RemoveAllChildren();
+        _listings.Clear();
 
         var search = SearchBar.Text.Trim().ToLowerInvariant();
 
@@ -129,6 +144,17 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
 
         var newUnavailableVessels = GetVesselPrototypesFromIds(unavailablePrototypes);
         AddVesselsToControls(newUnavailableVessels, search, free, false);
+
+        CatalogTitle.Text = Loc.GetString("shipyard-preview-catalog", ("count", _listings.Count));
+        if (_selectedVessel != null && _listings.TryGetValue(_selectedVessel.ID, out var selected))
+            SelectVessel(selected.Vessel, selected.Price, selected.CanPurchase);
+        else if (_listings.Count > 0)
+        {
+            var first = _listings.Values.First();
+            SelectVessel(first.Vessel, first.Price, first.CanPurchase);
+        }
+        else
+            SelectVessel(null);
 
         _lastAvailableProtos = availablePrototypes;
         _lastUnavailableProtos = unavailablePrototypes;
@@ -160,7 +186,7 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
     }
 
     /// <summary>
-    /// Adds all vessels in a given list of prototypes as VesselRows in the UI.
+    /// Adds the matching vessels to the catalog.
     /// </summary>
     private void AddVesselsToControls(IEnumerable<VesselPrototype?> vessels, string search, bool free, bool canPurchase)
     {
@@ -182,42 +208,71 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
             else
                 priceText = BankSystemExtensions.ToSpesoString(prototype!.Price);
 
-            var vesselEntry = new VesselRow
+            var vessel = prototype!;
+            if (_listings.ContainsKey(vessel.ID))
+                continue;
+
+            var entry = new Button
             {
-                Vessel = prototype,
-                VesselName = { Text = prototype!.Name },
-                Purchase = { Text = Loc.GetString("shipyard-console-purchase-available"), Disabled = !canPurchase },
-                Guidebook = { Disabled = prototype.GuidebookPage is null, TooltipDelay = 0.2f, ToolTip = prototype.Description },
-                Price = { Text = priceText },
+                Text = $"{vessel.Name}   ·   {priceText}",
+                ToolTip = vessel.Description,
+                ClipText = true,
+                HorizontalExpand = true,
+                ToggleMode = true,
             };
-            vesselEntry.Purchase.OnConfirming += OnStartConfirmingPurchase;
-            vesselEntry.Purchase.OnPressed += _ =>
-            {
-                    _currentlyConfirmingButton = null;
-                    ShuttleAtmospherePrototype? atmosphere = null;
-                    if (Atmosphere.SelectedMetadata is AtmosButtonMetadata metadata)
-                    {
-                        atmosphere = metadata.Proto;
-                    }
-                    Atmosphere.Select(0); // reset to default atmosphere
-                    OnOrderApproved?.Invoke(new OrderApprovedEventArgs(prototype.ID, atmosphere?.ID));
-            };
-            Vessels.AddChild(vesselEntry);
+            _listings.Add(vessel.ID, (vessel, priceText, canPurchase, entry));
+            entry.OnPressed += _ => SelectVessel(vessel, priceText, canPurchase);
+            Vessels.AddChild(entry);
         }
     }
 
-    /// <summary>
-    /// Confirming handler: ensures that only one button is confirming at a time.
-    /// </summary>
-    private void OnStartConfirmingPurchase(ButtonEventArgs args)
+    private void SelectVessel(VesselPrototype? vessel, string price = "", bool canPurchase = false)
     {
-        if (args.Button is not ConfirmButton confirmButton)
+        if (_selectedVessel?.ID != vessel?.ID || PurchaseButton.Disabled != !canPurchase)
+            PurchaseButton.ClearIsConfirming();
+
+        if (_selectedVessel != null && _listings.TryGetValue(_selectedVessel.ID, out var previous))
+            previous.Button.Pressed = false;
+
+        _selectedVessel = vessel;
+        if (vessel != null && _listings.TryGetValue(vessel.ID, out var selected))
+            selected.Button.Pressed = true;
+        PurchaseButton.Disabled = !canPurchase;
+        SelectedPriceLabel.Text = price;
+        GuidebookButton.Visible = vessel?.GuidebookPage != null;
+        InfoName.Text = vessel?.Name ?? string.Empty;
+        InfoSize.Text = vessel == null ? string.Empty : Loc.GetString($"shipyard-console-category-{vessel.Category}");
+        InfoClasses.Text = vessel == null ? string.Empty : string.Join(", ", vessel.Classes.Select(value => Loc.GetString($"shipyard-console-class-{value}")));
+        InfoEngines.Text = vessel == null ? string.Empty : string.Join(", ", vessel.Engines.Select(value => Loc.GetString($"shipyard-console-engine-{value}")));
+        InfoDescription.SetMessage(vessel?.Description ?? string.Empty);
+        PreviewView.SetVessel(vessel);
+        RefreshPreview();
+    }
+
+    private void RefreshPreview()
+    {
+        PreviewTitle.Text = _selectedVessel?.Name ?? string.Empty;
+        PreviewSubtitle.Text = InfoSize.Text;
+        PreviewStatus.Text = _selectedVessel == null
+            ? Loc.GetString("shipyard-preview-select")
+            : PreviewView.Entry is { } entry
+                ? entry.Failed ? Loc.GetString("shipyard-preview-failed") : string.Empty
+                : Loc.GetString("shipyard-preview-loading");
+        InfoLayout.Text = PreviewView.Entry?.Info is { } info
+            ? Loc.GetString("shipyard-preview-dimensions", ("width", info.Dimensions.X), ("height", info.Dimensions.Y))
+            : string.Empty;
+    }
+
+    private void PurchaseSelectedVessel()
+    {
+        if (_selectedVessel == null || PurchaseButton.Disabled)
             return;
 
-        if (_currentlyConfirmingButton != null)
-            _currentlyConfirmingButton.ClearIsConfirming();
-        _currentlyConfirmingButton = confirmButton;
+        var atmosphere = Atmosphere.SelectedMetadata is AtmosButtonMetadata metadata ? metadata.Proto : null;
+        Atmosphere.Select(0);
+        OnOrderApproved?.Invoke(new OrderApprovedEventArgs(_selectedVessel.ID, atmosphere?.ID));
     }
+
 
     /// <summary>
     ///     Populates the list categories that will actually be shown, using the current filters.

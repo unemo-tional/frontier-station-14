@@ -4,22 +4,24 @@ using System.Linq;
 using Robust.Shared.ContentPack;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map.Events;
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Markdown;
 using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.Serialization.Markdown.Value;
 using Robust.Shared.Utility;
 
-namespace Content.Server.Maps;
+namespace Content.Shared.Maps;
 
 /// <summary>
 ///     Performs basic map migration operations by listening for engine <see cref="MapLoaderSystem"/> events.
 /// </summary>
 public sealed partial class MapMigrationSystem : EntitySystem
 {
-#pragma warning disable CS0414
+#if DEBUG
     [Dependency] private IPrototypeManager _protoMan = default!;
-#pragma warning restore CS0414
+    [Dependency] private INetManager _net = default!;
+#endif
     [Dependency] private IResourceManager _resMan = default!;
 
     private static readonly string[] MigrationFiles = { "/migration.yml", "/nf_migration.yml" }; // Frontier: use array of migration files
@@ -30,7 +32,7 @@ public sealed partial class MapMigrationSystem : EntitySystem
         SubscribeLocalEvent<BeforeEntityReadEvent>(OnBeforeReadEvent);
 
 #if DEBUG
-        if (!TryReadFiles(out var mappings)) // Frontier: TryReadFile<TryReadFiles
+        if (!_net.IsServer || !TryReadFiles(out var mappings)) // Frontier: TryReadFile<TryReadFiles
             return;
 
         // Verify that all of the entries map to valid entity prototypes.

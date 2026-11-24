@@ -80,6 +80,32 @@ public static class ClientPackaging
 
         await RobustClientPackaging.WriteClientResources(contentDir, inputPass, cancel);
 
+        // The default client package excludes Maps. Include the vessel layouts used by the preview.
+        var resources = Path.Combine(contentDir, "Resources");
+        var prototypes = Path.Combine(resources, "Prototypes");
+        var includedMaps = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var prototype in Directory.EnumerateFiles(prototypes, "*.yml", SearchOption.AllDirectories))
+        {
+            cancel.ThrowIfCancellationRequested();
+            foreach (var line in File.ReadLines(prototype))
+            {
+                var field = line.TrimStart();
+                if (!field.StartsWith("shuttlePath:", StringComparison.Ordinal))
+                    continue;
+
+                var path = field["shuttlePath:".Length..].Split('#', 2)[0].Trim().Trim('"', '\'');
+                if (!path.StartsWith("/Maps/_NF/Shuttles/", StringComparison.Ordinal) ||
+                    !path.EndsWith(".yml", StringComparison.Ordinal) ||
+                    path.Contains("..", StringComparison.Ordinal) || path.Contains('\\'))
+                    continue;
+
+                var relativePath = path[1..];
+                var sourcePath = Path.Combine(resources, relativePath);
+                if (File.Exists(sourcePath) && includedMaps.Add(relativePath))
+                    inputPass.InjectFileFromDisk(relativePath, sourcePath);
+            }
+        }
+
         inputPass.InjectFinished();
     }
 }

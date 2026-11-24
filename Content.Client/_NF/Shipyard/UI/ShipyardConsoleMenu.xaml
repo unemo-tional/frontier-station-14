@@ -1,70 +1,72 @@
 <controls:FancyWindow xmlns="https://spacestation14.io"
-                           xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
-                           xmlns:shipyard="clr-namespace:Content.Client._NF.Shipyard.UI"
-                           SetSize="640 500"
-                           MinSize="640 300">
-    <BoxContainer Orientation="Vertical" Margin="5 0 5 0">
-        <BoxContainer Orientation="Vertical">
-            <BoxContainer Orientation="Horizontal">
-                <Label Text="{Loc 'bank-atm-menu-balance-label'}"
-                    StyleClasses="LabelKeyText" />
-                <Label Name="BalanceLabel"
-                    Text="{Loc 'shipyard-console-no-bank'}" />
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:shipyard="clr-namespace:Content.Client._NF.Shipyard.UI"
+                      SetSize="1440 820" MinSize="1000 570">
+    <BoxContainer Orientation="Vertical" Margin="6" SeparationOverride="6">
+        <BoxContainer Orientation="Horizontal" VerticalExpand="True" SeparationOverride="8">
+            <BoxContainer Orientation="Vertical" SetWidth="270" SeparationOverride="4">
+                <LineEdit Name="SearchBar" PlaceHolder="{Loc 'cargo-console-menu-search-bar-placeholder'}"/>
+                <GridContainer Columns="2">
+                    <OptionButton Name="Categories" Prefix="{Loc 'shipyard-console-menu-size-label'}" HorizontalExpand="True"/>
+                    <OptionButton Name="Classes" Prefix="{Loc 'shipyard-console-menu-class-label'}" HorizontalExpand="True"/>
+                    <OptionButton Name="Engines" Prefix="{Loc 'shipyard-console-menu-engine-label'}" HorizontalExpand="True"/>
+                    <OptionButton Name="SortBy" Prefix="{Loc 'shipyard-console-menu-sortby-label'}" HorizontalExpand="True"/>
+                </GridContainer>
+                <Label Name="CatalogTitle" FontColorOverride="#9BA6AD"/>
+                <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                    <BoxContainer Name="Vessels" Orientation="Vertical" HorizontalExpand="True" SeparationOverride="2"/>
+                </ScrollContainer>
+            </BoxContainer>
+
+            <Control HorizontalExpand="True" VerticalExpand="True">
+                <shipyard:ShipyardPreviewView Name="PreviewView"/>
+                <BoxContainer Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top"
+                              Margin="12" MouseFilter="Ignore">
+                    <Label Name="PreviewTitle" StyleClasses="LabelHeadingBigger"/>
+                    <Label Name="PreviewSubtitle" FontColorOverride="#B8C2C9"/>
+                </BoxContainer>
+                <Label Name="PreviewStatus" HorizontalAlignment="Center" VerticalAlignment="Center" MouseFilter="Ignore"/>
+                <BoxContainer Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                              Margin="10" SeparationOverride="4">
+                    <Button Name="PreviewFitButton" Text="{Loc 'shipyard-preview-fit'}"/>
+                    <Button Name="PreviewZoomOutButton" Text="−" MinWidth="32"/>
+                    <Button Name="PreviewZoomInButton" Text="+" MinWidth="32"/>
+                </BoxContainer>
+            </Control>
+
+            <BoxContainer Orientation="Vertical" SetWidth="280" SeparationOverride="8">
+                <Label Name="InfoName" StyleClasses="LabelHeading" ClipText="True"/>
+                <Label Name="InfoSize"/>
+                <Label Name="InfoClasses" ClipText="True"/>
+                <Label Name="InfoEngines" ClipText="True"/>
+                <Label Name="InfoLayout"/>
+                <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+                    <RichTextLabel Name="InfoDescription" HorizontalExpand="True"/>
+                </ScrollContainer>
+                <Button Name="GuidebookButton" Text="{Loc 'shipyard-console-guidebook'}" Visible="False"/>
             </BoxContainer>
         </BoxContainer>
-        <BoxContainer Orientation="Vertical">
-            <BoxContainer Orientation="Horizontal">
-                <Label Text="{Loc 'shipyard-console-appraisal-label'}"
-                    StyleClasses="LabelKeyText" />
-                <Label Name="ShipAppraisalLabel"
-                    Text="{Loc 'shipyard-console-no-deed'}" />
-            </BoxContainer>
-        </BoxContainer>
-        <BoxContainer Orientation="Horizontal">
-            <LineEdit Name="SearchBar"
-                      PlaceHolder="{Loc 'cargo-console-menu-search-bar-placeholder'}"
-                      HorizontalExpand="True" />
-        </BoxContainer>
-        <BoxContainer Orientation="Horizontal">
-            <OptionButton Name="Categories"
-                          Prefix="{Loc 'shipyard-console-menu-size-label'}"
-                          HorizontalExpand="True" />
-            <OptionButton Name="Classes"
-                          Prefix="{Loc 'shipyard-console-menu-class-label'}"
-                          HorizontalExpand="True" />
-            <OptionButton Name="Engines"
-                          Prefix="{Loc 'shipyard-console-menu-engine-label'}"
-                          HorizontalExpand="True" />
-            <OptionButton Name="SortBy"
-                          Prefix="{Loc 'shipyard-console-menu-sortby-label'}"
-                          HorizontalExpand="True" />
-        </BoxContainer>
-        <ScrollContainer HorizontalExpand="True"
-                         VerticalExpand="True"
-                         SizeFlagsStretchRatio="6">
-            <BoxContainer Name="Vessels"
-                          Orientation="Vertical"
-                          HorizontalExpand="True"
-                          VerticalExpand="True">
-                <!-- Vessels get added here by code -->
-            </BoxContainer>
-        </ScrollContainer>
+
         <GridContainer Columns="2" HorizontalExpand="True" Name="CustomAtmosContainer">
             <shipyard:AtmosOptionButton Name="Atmosphere" Prefix="{Loc 'shipyard-console-menu-atmos-label'}"/>
         </GridContainer>
-        <GridContainer Columns="3" HorizontalExpand="True" Margin="0 8 0 2">
+        <BoxContainer Orientation="Horizontal" SeparationOverride="8">
             <Button Name="TargetIdButton" Access="Public"/>
-            <Button Name="SellShipButton"
-                Text="Sell"
-                Disabled="True" />
-            <BoxContainer Orientation="Vertical" Name="NoDeedHelperContainer" Visible="True">
-                <Label Text="{Loc 'shipyard-console-no-idcard-helper-line1'}"/>
-                <Label Text="{Loc 'shipyard-console-no-idcard-helper-line2'}"/>
-            </BoxContainer>
-            <BoxContainer Orientation="Vertical" Name="DeedContainer" Visible="False">
-                <Label Text="{Loc 'shipyard-console-deed-label'}"/>
-                <Label Name="DeedTitle" Text=""/>
-            </BoxContainer>
-        </GridContainer>
+            <controls:ConfirmButton Name="PurchaseButton" Text="{Loc 'shipyard-console-purchase-available'}" Disabled="True"/>
+            <Button Name="SellShipButton" Text="{Loc 'shipyard-preview-sell'}" Disabled="True"/>
+            <Label Name="SelectedPriceLabel" VerticalAlignment="Center"/>
+            <Label Text="{Loc 'bank-atm-menu-balance-label'}" VerticalAlignment="Center"/>
+            <Label Name="BalanceLabel" Text="{Loc 'shipyard-console-no-bank'}" VerticalAlignment="Center"/>
+        </BoxContainer>
+        <BoxContainer Orientation="Horizontal" Name="DeedContainer" Visible="False" SeparationOverride="8">
+            <Label Text="{Loc 'shipyard-console-deed-label'}"/>
+            <Label Name="DeedTitle"/>
+            <Label Text="{Loc 'shipyard-console-appraisal-label'}"/>
+            <Label Name="ShipAppraisalLabel" Text="{Loc 'shipyard-console-no-deed'}"/>
+        </BoxContainer>
+        <BoxContainer Orientation="Horizontal" Name="NoDeedHelperContainer" SeparationOverride="8">
+            <Label Text="{Loc 'shipyard-console-no-idcard-helper-line1'}"/>
+            <Label Text="{Loc 'shipyard-console-no-idcard-helper-line2'}"/>
+        </BoxContainer>
     </BoxContainer>
 </controls:FancyWindow>
