@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using Content.Client.Lobby;
 using Content.Server.Preferences.Managers;
 using Content.Shared.Preferences;
