@@ -21,6 +21,6 @@ public sealed partial class VipUplinkProductPrototype : IPrototype
     {
         return Price > 0 && StackAmount is >= 0 and <= 30 && MinimumTier > 0 && tier >= MinimumTier &&
                (AllowedAccounts.Count == 0 || AllowedAccounts.Contains(account) ||
-                (login != null && AllowedAccounts.Contains(login, System.StringComparer.OrdinalIgnoreCase)));
+                (login != null && AllowedAccounts.Any(allowed => string.Compare(allowed, login, System.StringComparison.OrdinalIgnoreCase) == 0)));
     }
 }
