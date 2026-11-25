@@ -3,11 +3,11 @@
   path: /Textures/Interface/Default/
   colors:
     whiteText: "#FFF5EE"
-    slotSelectedGold: "#e6b812"
-    slotColor: "#0f1215"
-    slotOutline: "#333850"
-    slotText: "#333850"
-    nanoGold: "#A88B5E"
+    slotSelectedGold: "#8CCFFF"
+    slotColor: "#0E1824"
+    slotOutline: "#385872"
+    slotText: "#719CBF"
+    nanoGold: "#8CCFFF"
     goodGreenFore: "#31843E"
     concerningOrangeFore: "#A5762F"
     dangerousRedFore: "#BB3232"
@@ -88,11 +88,11 @@
   path: /Textures/Interface/Minimalist/
   colors:
     whiteText: "#FFF5EE"
-    slotSelectedGold: "#e6b812"
-    slotColor: "#0f1215"
-    slotOutline: "#333850"
-    slotText: "#333850"
-    nanoGold: "#A88B5E"
+    slotSelectedGold: "#8CCFFF"
+    slotColor: "#0E1824"
+    slotOutline: "#385872"
+    slotText: "#719CBF"
+    nanoGold: "#8CCFFF"
     goodGreenFore: "#31843E"
     concerningOrangeFore: "#A5762F"
     dangerousRedFore: "#BB3232"
