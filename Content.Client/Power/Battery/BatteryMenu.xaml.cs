@@ -45,8 +45,8 @@ public sealed partial class BatteryMenu : FancyWindow
     ];
 
     // Parameters for the sine wave pulsing animations for active power lines in the UI.
-    private static readonly Color ActivePowerLineHighColor = Color.FromHex("#CCC");
-    private static readonly Color ActivePowerLineLowColor = Color.FromHex("#888");
+    private static readonly Color ActivePowerLineHighColor = Color.FromHex("#A0C5E4");
+    private static readonly Color ActivePowerLineLowColor = Color.FromHex("#6488A7");
     private const float PowerPulseFactor = 4;
 
     // Dependencies
@@ -56,7 +56,7 @@ public sealed partial class BatteryMenu : FancyWindow
     // Active and inactive style boxes for power lines.
     // We modify _activePowerLineStyleBox's properties programmatically to implement the pulsing animation.
     private readonly StyleBoxFlat _activePowerLineStyleBox = new();
-    private readonly StyleBoxFlat _inactivePowerLineStyleBox = new() { BackgroundColor = Color.FromHex("#555") };
+    private readonly StyleBoxFlat _inactivePowerLineStyleBox = new() { BackgroundColor = Color.FromHex("#385872") };
 
     // Style boxes for the storage cell bar graphic.
     // We modify the properties of these to change the bars' colors.
