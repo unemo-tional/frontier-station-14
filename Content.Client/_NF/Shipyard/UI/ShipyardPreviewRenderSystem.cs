@@ -1,6 +1,8 @@
 // Adapted from Lua-Frontier/Monolith-DS (AGPL-3.0).
 using System.Linq;
 using System.Numerics;
+using Content.Client.Wires.Visualizers;
+using Content.Shared.Tools.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared.GameTicking;
 using Robust.Client.GameObjects;
@@ -366,6 +368,12 @@ public sealed partial class ShipyardPreviewRenderSystem : EntitySystem
             _sprite.CopySprite((EntityUid.Invalid, prototypeSprite), (uid, sprite));
         else if (sprite.BaseRSI == null && prototypeSprite.BaseRSI is { } rsi)
             _sprite.SetBaseRsi((uid, sprite), rsi);
+
+        // The preview omits the visualizers that normally hide these optional overlays.
+        if (_sprite.LayerMapTryGet((uid, sprite), WiresVisualLayers.MaintenancePanel, out var panel, false))
+            _sprite.LayerSetVisible((uid, sprite), panel, false);
+        if (_sprite.LayerMapTryGet((uid, sprite), WeldableLayers.BaseWelded, out var weld, false))
+            _sprite.LayerSetVisible((uid, sprite), weld, false);
     }
 
     private void KeepPreviewComponents(MappingDataNode data, Dictionary<string, string> renamedPrototypes)
@@ -382,11 +390,12 @@ public sealed partial class ShipyardPreviewRenderSystem : EntitySystem
             if (group.TryGet("proto", out ValueDataNode? id) && id.Value.Length != 0)
                 _proto.TryIndex(renamedPrototypes.GetValueOrDefault(id.Value, id.Value), out prototype);
 
-            // MarkerSystem normally hides these sprites, but preview entities omit its Marker component.
-            var hideMarkerSprite = prototype != null &&
-                (prototype.Components.ContainsKey("Marker") || prototype.Components.ContainsKey("SpawnPoint"));
+            // Hide editor markers and keep corridors visible underneath their firelocks.
+            var hideSprite = prototype != null &&
+                (prototype.Components.ContainsKey("Marker") || prototype.Components.ContainsKey("SpawnPoint") ||
+                 prototype.Components.ContainsKey("Firelock"));
             bool KeepComponent(string name) =>
-                PreviewComponents.Contains(name) && (!hideMarkerSprite || name != "Sprite");
+                PreviewComponents.Contains(name) && (!hideSprite || name != "Sprite");
 
             var excluded = prototype?.Components.Keys.Where(name => !KeepComponent(name)).ToArray()
                 ?? Array.Empty<string>();
