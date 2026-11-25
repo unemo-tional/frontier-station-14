@@ -28,6 +28,7 @@ namespace Content.Client.Stylesheets
         public const string ButtonCaution = "Caution";
 
         public const int DefaultGrabberSize = 10;
+        public static readonly Color InsetPanelColor = Color.FromHex("#0E1824");
 
         public abstract Stylesheet Stylesheet { get; }
 
@@ -123,38 +124,48 @@ namespace Content.Client.Stylesheets
             };
             AngleBorderRect.SetPatchMargin(StyleBox.Margin.All, 10);
 
+            var scrollBarNormal = Color.FromHex("#456884");
+            var scrollBarHover = Color.FromHex("#5B85A8");
+            var scrollBarGrabbed = Color.FromHex("#75A7CF");
+
             var vScrollBarGrabberNormal = new StyleBoxFlat
             {
-                BackgroundColor = Color.Gray.WithAlpha(0.35f), ContentMarginLeftOverride = DefaultGrabberSize,
+                BackgroundColor = scrollBarNormal, ContentMarginLeftOverride = DefaultGrabberSize,
                 ContentMarginTopOverride = DefaultGrabberSize
             };
             var vScrollBarGrabberHover = new StyleBoxFlat
             {
-                BackgroundColor = new Color(140, 140, 140).WithAlpha(0.35f), ContentMarginLeftOverride = DefaultGrabberSize,
+                BackgroundColor = scrollBarHover, ContentMarginLeftOverride = DefaultGrabberSize,
                 ContentMarginTopOverride = DefaultGrabberSize
             };
             var vScrollBarGrabberGrabbed = new StyleBoxFlat
             {
-                BackgroundColor = new Color(160, 160, 160).WithAlpha(0.35f), ContentMarginLeftOverride = DefaultGrabberSize,
+                BackgroundColor = scrollBarGrabbed, ContentMarginLeftOverride = DefaultGrabberSize,
                 ContentMarginTopOverride = DefaultGrabberSize
             };
 
             var hScrollBarGrabberNormal = new StyleBoxFlat
             {
-                BackgroundColor = Color.Gray.WithAlpha(0.35f), ContentMarginTopOverride = DefaultGrabberSize
+                BackgroundColor = scrollBarNormal, ContentMarginTopOverride = DefaultGrabberSize
             };
             var hScrollBarGrabberHover = new StyleBoxFlat
             {
-                BackgroundColor = new Color(140, 140, 140).WithAlpha(0.35f), ContentMarginTopOverride = DefaultGrabberSize
+                BackgroundColor = scrollBarHover, ContentMarginTopOverride = DefaultGrabberSize
             };
             var hScrollBarGrabberGrabbed = new StyleBoxFlat
             {
-                BackgroundColor = new Color(160, 160, 160).WithAlpha(0.35f), ContentMarginTopOverride = DefaultGrabberSize
+                BackgroundColor = scrollBarGrabbed, ContentMarginTopOverride = DefaultGrabberSize
             };
 
 
             BaseRules = new[]
             {
+                new StyleRule(new SelectorElement(typeof(PanelContainer), new[] {"InsetPanel"}, null, null),
+                    new[]
+                    {
+                        new StyleProperty(PanelContainer.StylePropertyPanel, new StyleBoxFlat(InsetPanelColor)),
+                    }),
+
                 // Default font.
                 new StyleRule(
                     new SelectorElement(null, null, null, null),
