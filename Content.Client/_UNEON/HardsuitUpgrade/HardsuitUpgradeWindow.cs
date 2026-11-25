@@ -35,7 +35,7 @@ public sealed class HardsuitUpgradeWindow : FancyWindow
         var root = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, Margin = new(12), SeparationOverride = 8 };
         ContentsContainer.AddChild(root);
         var showcase = new BoxContainer { SeparationOverride = 12 };
-        var previewPanel = new PanelContainer { StyleClasses = { "PdaBackground" } };
+        var previewPanel = new PanelContainer { StyleClasses = { "InsetPanel" } };
         previewPanel.AddChild(_preview);
         showcase.AddChild(previewPanel);
         var details = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
@@ -67,7 +67,7 @@ public sealed class HardsuitUpgradeWindow : FancyWindow
             header.AddChild(buy);
             row.AddChild(header);
             row.AddChild(cost);
-            var card = new PanelContainer { StyleClasses = { "PdaBackground" }, Margin = new(0, 2) };
+            var card = new PanelContainer { StyleClasses = { "InsetPanel" }, Margin = new(0, 2) };
             card.AddChild(row);
             rows.AddChild(card);
             _rows.Add(kind, (stat, cost, buy, card));
