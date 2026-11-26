@@ -67,6 +67,7 @@ public sealed partial class VipUplinkUi : UIFragment
         AddTab(tabs, VipUplinkCategory.Food, "uneon-vip-tab-food");
         AddTab(tabs, VipUplinkCategory.Cloaks, "uneon-vip-tab-cloaks");
         AddTab(tabs, VipUplinkCategory.Misc, "uneon-vip-tab-misc");
+        AddTab(tabs, VipUplinkCategory.Flatpacks, "uneon-vip-tab-flatpacks");
         AddTab(tabs, VipUplinkCategory.Personal, "uneon-vip-tab-personal");
 
         foreach (var page in _pages.Values)

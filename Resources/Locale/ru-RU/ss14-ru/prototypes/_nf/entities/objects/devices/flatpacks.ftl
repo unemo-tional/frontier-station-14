@@ -1,5 +1,7 @@
 ent-BaseNFFlatpack = { ent-BaseFlatpack }
     .desc = { ent-BaseFlatpack.desc }
+ent-MachineMiniAnomalyGeneratorFlatpack = упакованный компактный генератор аномалий
+    .desc = Упаковка для сборки компактного генератора аномалий.
 ent-AutolatheFlatpack = упакованный автолат
     .desc = Упаковка, при помощи которой можно создать автолат.
 ent-EngineeringTechFabFlatpack = упакованный инженерный техфаб
