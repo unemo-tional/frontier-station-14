@@ -31,7 +31,9 @@ public sealed class VipUplinkTest
             Assert.That(cartridges.GetInstalled(pda).Count(uid => entities.HasComponent<VipUplinkCartridgeComponent>(uid)),
                 Is.EqualTo(1));
             var products = server.ProtoMan.EnumeratePrototypes<VipUplinkProductPrototype>().ToArray();
-            Assert.That(products.Select(p => p.ID), Is.SupersetOf(new[] { "UneonVipSteel", "UneonVipGlass", "UneonVipPlastic" }));
+            Assert.That(products.Where(p => p.Category == VipUplinkCategory.Resources && p.DeliverAdjacent)
+                .Select(p => p.Product.Id),
+                Is.EquivalentTo(new[] { "CrateMaterialSteel", "CrateMaterialGlass", "CrateMaterialPlastic", "CrateMaterialPlasteel" }));
             Assert.That(products.Where(p => p.AllowedAccounts.Count == 0).Select(p => p.Category).Distinct(),
                 Is.EquivalentTo(Enum.GetValues<VipUplinkCategory>().Where(category => category != VipUplinkCategory.Personal)));
             foreach (var product in products)
@@ -43,7 +45,7 @@ public sealed class VipUplinkTest
                 Assert.That(entities.GetComponent<TransformComponent>(item).MapID, Is.EqualTo(MapId.Nullspace));
                 entities.System<SharedTransformSystem>().SetCoordinates(item, map.GridCoords);
                 Assert.That(entities.GetComponent<TransformComponent>(item).MapID, Is.EqualTo(map.MapId));
-                if (product.Category == VipUplinkCategory.Resources)
+                if (product.Category == VipUplinkCategory.Resources && !product.DeliverAdjacent)
                 {
                     Assert.That(product.StackAmount, Is.EqualTo(30), product.ID);
                     var stack = entities.GetComponent<StackComponent>(item);

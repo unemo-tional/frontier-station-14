@@ -6,12 +6,15 @@ using Content.Shared._UNEON.VipUplink;
 using Content.Shared.CartridgeLoader;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
+using Content.Shared.Maps;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.PDA;
+using Content.Shared.Physics;
 using Content.Shared.Popups;
 using Content.Shared.Stacks;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
@@ -33,6 +36,9 @@ public sealed class VipUplinkSystem : EntitySystem
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly SharedTransformSystem _transform = default!;
     [Dependency] private readonly SharedStackSystem _stacks = default!;
+    [Dependency] private readonly TurfSystem _turf = default!;
+    [Dependency] private readonly SharedMapSystem _map = default!;
+    private static readonly Vector2i[] AdjacentOffsets = [new(1, 0), new(-1, 0), new(0, 1), new(0, -1)];
     private readonly Dictionary<EntityUid, TimeSpan> _lastPurchase = new();
     private TimeSpan _nextRefresh;
 
@@ -151,6 +157,13 @@ public sealed class VipUplinkSystem : EntitySystem
             return;
         }
 
+        var delivery = Transform(actor).Coordinates;
+        if (product.DeliverAdjacent && !TryGetAdjacentDelivery(actor, delivery, out delivery))
+        {
+            _popups.PopupEntity(Loc.GetString("uneon-vip-no-delivery-space"), actor, actor);
+            return;
+        }
+
         // Stage the item outside the world before charging. A failed prototype spawn never costs money.
         var items = new List<EntityUid>();
         try
@@ -189,11 +202,38 @@ public sealed class VipUplinkSystem : EntitySystem
         // Use the actor's coordinates, never a client supplied position or the PDA's ID card owner.
         foreach (var item in items)
         {
-            _transform.SetCoordinates(item, Transform(actor).Coordinates);
-            _hands.TryPickupAnyHand(actor, item);
+            _transform.SetCoordinates(item, delivery);
+            if (!product.DeliverAdjacent)
+                _hands.TryPickupAnyHand(actor, item);
         }
         Log.Info($"VIP uplink: {session.UserId} bought {product.ID} for {product.Price}");
         _popups.PopupEntity(Loc.GetString("uneon-vip-success"), actor, actor);
         UpdateViewers(loader, loaderComp);
+    }
+
+    private bool TryGetAdjacentDelivery(EntityUid actor, EntityCoordinates origin, out EntityCoordinates delivery)
+    {
+        delivery = default;
+        if (!_turf.TryGetTileRef(origin, out var current) ||
+            !TryComp<MapGridComponent>(current.Value.GridUid, out var grid))
+            return false;
+
+        var gridUid = current.Value.GridUid;
+        foreach (var offset in AdjacentOffsets)
+        {
+            var indices = current.Value.GridIndices + offset;
+            if (!_map.TryGetTileRef(gridUid, grid, indices, out var tile) ||
+                tile.Tile.IsEmpty || _turf.IsTileBlocked(tile, CollisionGroup.MobMask))
+                continue;
+
+            var coordinates = _map.GridTileToLocal(gridUid, grid, indices);
+            if (!_interaction.InRangeUnobstructed(actor, coordinates, popup: false))
+                continue;
+
+            delivery = coordinates;
+            return true;
+        }
+
+        return false;
     }
 }

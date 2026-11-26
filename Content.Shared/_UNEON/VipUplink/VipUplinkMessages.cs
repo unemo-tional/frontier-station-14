@@ -11,7 +11,8 @@ public enum VipUplinkCategory : byte
     Food,
     Cloaks,
     Misc,
-    Personal
+    Personal,
+    Flatpacks
 }
 
 [Serializable, NetSerializable]

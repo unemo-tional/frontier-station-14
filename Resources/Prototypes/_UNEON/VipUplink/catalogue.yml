@@ -1,130 +1,39 @@
-# Prices in bank credits. Resources are sold in lots of 30.
+# Prices in bank credits.
 
 - type: vipUplinkProduct
   id: UneonVipSteel
-  product: SheetSteel
+  product: CrateMaterialSteel
   category: Resources
-  stackAmount: 30
-  price: 3000
+  deliverAdjacent: true
+  price: 5000
 
 - type: vipUplinkProduct
   id: UneonVipGlass
-  product: SheetGlass
+  product: CrateMaterialGlass
   category: Resources
-  stackAmount: 30
+  deliverAdjacent: true
   price: 5000
 
 - type: vipUplinkProduct
   id: UneonVipPlastic
-  product: SheetPlastic
+  product: CrateMaterialPlastic
   category: Resources
-  stackAmount: 30
-  price: 5000
-
-- type: vipUplinkProduct
-  id: UneonVipBluespace
-  product: MaterialBluespace
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipReinforcedGlass
-  product: SheetRGlass1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipPlasmaGlass
-  product: SheetPGlass1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipReinforcedPlasmaGlass
-  product: SheetRPGlass1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipUraniumGlass
-  product: SheetUGlass1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipReinforcedUraniumGlass
-  product: SheetRUGlass1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipClockworkGlass
-  product: SheetClockworkGlass1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipPlasteel
-  product: SheetPlasteel1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipBrass
-  product: SheetBrass1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipPaper
-  product: SheetPaper1
-  category: Resources
-  stackAmount: 30
+  deliverAdjacent: true
   price: 6000
 
 - type: vipUplinkProduct
-  id: UneonVipPlasma
-  product: SheetPlasma1
+  id: UneonVipPlasteel
+  product: CrateMaterialPlasteel
   category: Resources
-  stackAmount: 30
-  price: 24000
+  deliverAdjacent: true
+  price: 20000
 
 - type: vipUplinkProduct
-  id: UneonVipUranium
-  product: SheetUranium1
+  id: UneonVipCloth
+  product: MaterialCloth1
   category: Resources
   stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipGold
-  product: IngotGold1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipSilver
-  product: IngotSilver1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipBiomass
-  product: MaterialBiomass1
-  category: Resources
-  stackAmount: 30
-  price: 12000
+  price: 5000
 
 - type: vipUplinkProduct
   id: UneonVipWoodPlank
@@ -134,273 +43,10 @@
   price: 6000
 
 - type: vipUplinkProduct
-  id: UneonVipCardboard
-  product: MaterialCardboard1
-  category: Resources
-  stackAmount: 30
-  price: 6000
-
-- type: vipUplinkProduct
-  id: UneonVipCloth
-  product: MaterialCloth1
-  category: Resources
-  stackAmount: 30
-  price: 6000
-
-- type: vipUplinkProduct
-  id: UneonVipDurathread
-  product: MaterialDurathread1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipDiamond
-  product: MaterialDiamond1
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipCotton
-  product: MaterialCotton1
-  category: Resources
-  stackAmount: 30
-  price: 6000
-
-- type: vipUplinkProduct
-  id: UneonVipPyrotton
-  product: MaterialPyrotton1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipBananium
-  product: MaterialBananium1
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipMeatSheets
-  product: MaterialSheetMeat1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipWebSilk
-  product: MaterialWebSilk1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipSpaceCarpTooth
-  product: MaterialToothSpaceCarp1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipSharkMinnowTooth
-  product: MaterialToothSharkminnow1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipBones
-  product: MaterialBones1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipGunpowder
-  product: MaterialGunpowder
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipGoliathHide
-  product: MaterialGoliathHide1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipGoldOre
-  product: GoldOre1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipDiamondOre
-  product: DiamondOre1
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipSteelOre
-  product: SteelOre1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipPlasmaOre
-  product: PlasmaOre1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipSilverOre
-  product: SilverOre1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipSpaceQuartz
-  product: SpaceQuartz1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipUraniumOre
-  product: UraniumOre1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipBananiumOre
-  product: BananiumOre1
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipCoal
-  product: Coal1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipSaltOre
-  product: Salt1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipMetalRod
-  product: PartRodMetal1
-  category: Resources
-  stackAmount: 30
-  price: 6000
-
-- type: vipUplinkProduct
-  id: UneonVipBluespaceOre
-  product: BluespaceOre1
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipScrapOreTech
-  product: ScrapOreTech1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipScrapOre
-  product: ScrapOre1
-  category: Resources
-  stackAmount: 30
-  price: 12000
-
-- type: vipUplinkProduct
-  id: UneonVipAnomalite
-  product: MaterialAnomalite1
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipFuelPlasma
-  product: FuelPlasma1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipFuelUranium
-  product: FuelUranium1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipFuelBananium
-  product: FuelBananium1
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipFuelSkrungle
-  product: FuelSkrungle1
-  category: Resources
-  stackAmount: 30
-  price: 75000
-
-- type: vipUplinkProduct
-  id: UneonVipNFStackChitinXeno
-  product: NFMaterialChitinXeno1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipNFStackChitinArgocyte
-  product: NFMaterialChitinArgocyte1
-  category: Resources
-  stackAmount: 30
-  price: 24000
-
-- type: vipUplinkProduct
-  id: UneonVipWater
-  product: DrinkWaterBottleFull
-  category: Food
-  price: 100
-
-- type: vipUplinkProduct
-  id: UneonVipNutribrick
-  product: FoodSnackNutribrick
-  category: Food
-  price: 150
-
-- type: vipUplinkProduct
   id: UneonVipSpatioSuit
   product: ClothingOuterHardsuitSpatio
   category: Hardsuits
   price: 15000
-
-- type: vipUplinkProduct
-  id: UneonVipEngineeringSuit
-  product: ClothingOuterHardsuitEngineering
-  category: Hardsuits
-  price: 25000
 
 - type: vipUplinkProduct
   id: UneonVipSalvageSuit
@@ -409,22 +55,22 @@
   price: 22000
 
 - type: vipUplinkProduct
-  id: UneonVipMedicalSuit
-  product: ClothingOuterHardsuitMedical
+  id: UneonVipSantaSuit
+  product: ClothingOuterHardsuitSanta
   category: Hardsuits
   price: 25000
 
 - type: vipUplinkProduct
-  id: UneonVipMothCloak
-  product: ClothingNeckCloakMoth
-  category: Cloaks
-  price: 3500
+  id: UneonVipNutribrick
+  product: FoodSnackNutribrick
+  category: Food
+  price: 3000
 
 - type: vipUplinkProduct
-  id: UneonVipVoidCloak
-  product: ClothingNeckCloakVoid
-  category: Cloaks
-  price: 3500
+  id: UneonVipWater
+  product: DrinkWaterBottleFull
+  category: Food
+  price: 1000
 
 - type: vipUplinkProduct
   id: UneonVipHeraldCloak
@@ -439,7 +85,182 @@
   price: 3500
 
 - type: vipUplinkProduct
+  id: UneonVipAdminCloak
+  product: ClothingNeckCloakAdmin
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipWebCloak
+  product: ClothingNeckCloakWeb
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipGoliathCloak
+  product: ClothingNeckCloakGoliathCloak
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipTreasureHunterCloak
+  product: ClothingNeckCloakEnby
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipMothCloak
+  product: ClothingNeckCloakMoth
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipPilotCloak
+  product: ClothingNeckCloakAce
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipPoetCloak
+  product: ClothingNeckCloakLesbian
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipVoidCloak
+  product: ClothingNeckCloakVoid
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipRosyCloak
+  product: ClothingNeckCloakRosy
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipNetworkMarketingCloak
+  product: ClothingNeckCloakGay
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipChiefEngineerCloak
+  product: ClothingNeckCloakCe
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipCyclopsCloak
+  product: ClothingNeckCloakIntersex
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipMinerCloak
+  product: ClothingNeckCloakMiner
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipChefCloak
+  product: ClothingNeckCloakPan
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
+  id: UneonVipVenomCloak
+  product: ClothingNeckCloakBi
+  category: Cloaks
+  price: 3500
+
+- type: vipUplinkProduct
   id: UneonVipFlashlight
   product: FlashlightLantern
   category: Misc
   price: 500
+
+- type: vipUplinkProduct
+  id: UneonVipScienceLabBundle
+  product: CrateScienceLabBundle
+  category: Flatpacks
+  deliverAdjacent: true
+  price: 45000
+
+- type: vipUplinkProduct
+  id: UneonVipFlatpacker
+  product: MachineFlatpackerFlatpack
+  category: Flatpacks
+  price: 10000
+
+- type: vipUplinkProduct
+  id: UneonVipBankATM
+  product: ComputerWithdrawBankATMFlatpack
+  category: Flatpacks
+  price: 12000
+
+- type: vipUplinkProduct
+  id: UneonVipJuniorPacman
+  product: PortableGeneratorJrPacmanFlatpack
+  category: Flatpacks
+  price: 5000
+
+- type: vipUplinkProduct
+  id: UneonVipPacman
+  product: PortableGeneratorPacmanFlatpack
+  category: Flatpacks
+  price: 10000
+
+- type: vipUplinkProduct
+  id: UneonVipSuperPacman
+  product: PortableGeneratorSuperPacmanFlatpack
+  category: Flatpacks
+  price: 15000
+
+- type: vipUplinkProduct
+  id: UneonVipSolarAssembly
+  product: SolarAssemblyFlatpack
+  category: Flatpacks
+  price: 1000
+
+- type: vipUplinkProduct
+  id: UneonVipSolarControl
+  product: ComputerSolarControlFlatpack
+  category: Flatpacks
+  price: 5000
+
+- type: vipUplinkProduct
+  id: UneonVipMiniGravity
+  product: GravityGeneratorMiniFlatpack
+  category: Flatpacks
+  price: 5000
+
+- type: vipUplinkProduct
+  id: UneonVipThruster
+  product: ThrusterFlatpack
+  category: Flatpacks
+  price: 8000
+
+- type: vipUplinkProduct
+  id: UneonVipGyroscope
+  product: GyroscopeFlatpack
+  category: Flatpacks
+  price: 8000
+
+- type: vipUplinkProduct
+  id: UneonVipSpaceHeater
+  product: SpaceHeaterFlatpack
+  category: Flatpacks
+  price: 12000
+
+- type: vipUplinkProduct
+  id: UneonVipDockingAirlock
+  product: AirlockShuttleFlatpack
+  category: Flatpacks
+  price: 5000
+
+- type: vipUplinkProduct
+  id: UneonVipMiniAnomalyGenerator
+  product: MachineMiniAnomalyGeneratorFlatpack
+  category: Flatpacks
+  price: 100000

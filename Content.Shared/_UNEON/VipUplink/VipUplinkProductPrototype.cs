@@ -12,6 +12,7 @@ public sealed partial class VipUplinkProductPrototype : IPrototype
     [DataField(required: true)] public EntProtoId Product;
     [DataField] public VipUplinkCategory Category = VipUplinkCategory.Misc;
     [DataField] public int StackAmount;
+    [DataField] public bool DeliverAdjacent;
     [DataField(required: true)] public int Price;
     [DataField] public int MinimumTier = 1;
     /// <summary>SS14 account UUIDs or login names. Empty means a shared product.</summary>
