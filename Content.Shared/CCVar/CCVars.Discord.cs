@@ -5,6 +5,12 @@ namespace Content.Shared.CCVar;
 public sealed partial class CCVars
 {
     /// <summary>
+    ///     Discord webhook for new server bans. An empty URL disables notifications.
+    /// </summary>
+    public static readonly CVarDef<string> DiscordBanWebhook =
+        CVarDef.Create("discord.ban_webhook", string.Empty, CVar.SERVERONLY | CVar.CONFIDENTIAL);
+
+    /// <summary>
     ///     The role that will get mentioned if a new SOS ahelp comes in.
     /// </summary>
     public static readonly CVarDef<string> DiscordAhelpMention =
