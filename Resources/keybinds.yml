@@ -1,4 +1,4 @@
-﻿version: 1 # Not used right now, whatever.
+version: 1 # Not used right now, whatever.
 binds:
 - function: UIClick
   type: State
@@ -67,6 +67,10 @@ binds:
   type: State
   key: Space
 # Camera
+- function: ToggleLookAhead
+  type: State
+  key: Space
+  priority: -1 # Give arcade input precedence while its window has focus.
 - function: CameraRotateLeft
   type: State
   key: NumpadNum7

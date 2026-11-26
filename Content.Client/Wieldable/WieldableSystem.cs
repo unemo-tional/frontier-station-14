@@ -47,6 +47,7 @@ public sealed partial class WieldableSystem : SharedWieldableSystem
         if (offset == null)
             return;
 
+        args.Args.ControlsCamera = true;
         args.Args.Offset += offset.Value;
     }
 }
