@@ -28,6 +28,6 @@ public sealed partial class GameTicker
     private void RandomizeLobbyBackground()
     {
         // UNEON: use a fixed branded lobby background.
-        LobbyBackground = "/Textures/_UNEON/lobby.png";
+        LobbyBackground = "/Textures/_UNEON/lobby-station.png";
     }
 }
