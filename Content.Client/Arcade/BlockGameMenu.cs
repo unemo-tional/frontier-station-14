@@ -593,7 +593,10 @@ namespace Content.Client.Arcade
             else if (args.Function == ContentKeyFunctions.Arcade2)
                 OnAction?.Invoke(BlockGamePlayerAction.Hold);
             else if (args.Function == ContentKeyFunctions.Arcade1)
+            {
                 OnAction?.Invoke(BlockGamePlayerAction.Harddrop);
+                args.Handle();
+            }
         }
 
         protected override void KeyBindUp(GUIBoundKeyEventArgs args)

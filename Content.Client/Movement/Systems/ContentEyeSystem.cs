@@ -56,6 +56,7 @@ public sealed partial class ContentEyeSystem : SharedContentEyeSystem
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
+        UpdateLookAhead(frameTime);
         var eyeEntities = AllEntityQuery<ContentEyeComponent, EyeComponent>();
         while (eyeEntities.MoveNext(out var entity, out ContentEyeComponent? contentComponent, out EyeComponent? eyeComponent))
         {

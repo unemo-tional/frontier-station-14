@@ -147,6 +147,7 @@ ui-options-function-camera-rotate-left = Rotate left
 ui-options-function-camera-rotate-right = Rotate right
 ui-options-function-camera-reset = Reset
 ui-options-function-zoom-in = Zoom in
+ui-options-function-toggle-look-ahead = Toggle look ahead
 ui-options-function-zoom-out = Zoom out
 ui-options-function-reset-zoom = Reset zoom
 

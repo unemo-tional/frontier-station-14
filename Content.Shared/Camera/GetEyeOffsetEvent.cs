@@ -36,4 +36,9 @@ public sealed class GetEyeOffsetRelayedEvent : EntityEventArgs, IInventoryRelayE
     public SlotFlags TargetSlots { get; } = ~(SlotFlags.POCKET & SlotFlags.SUITSTORAGE);
 
     public Vector2 Offset;
+
+    /// <summary>
+    /// Whether an item controls the camera offset, including when its offset is zero.
+    /// </summary>
+    public bool ControlsCamera;
 }

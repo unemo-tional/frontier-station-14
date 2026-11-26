@@ -157,8 +157,14 @@ public abstract partial class SharedContentEyeSystem : EntitySystem
         var evRelayed = new GetEyeOffsetRelayedEvent();
         RaiseLocalEvent(eye, ref evRelayed);
 
-        _eye.SetOffset(eye, ev.Offset + evRelayed.Offset, eye);
+        var offset = ev.Offset + evRelayed.Offset;
+        if (!evRelayed.ControlsCamera)
+            offset += GetLookAheadOffset(eye.Owner);
+
+        _eye.SetOffset(eye, offset, eye);
     }
+
+    protected virtual Vector2 GetLookAheadOffset(EntityUid uid) => Vector2.Zero;
 
     public void UpdatePvsScale(EntityUid uid, ContentEyeComponent? contentEye = null, EyeComponent? eye = null)
     {

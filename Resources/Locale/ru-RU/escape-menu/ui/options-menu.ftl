@@ -127,6 +127,7 @@ ui-options-function-camera-rotate-left = Повернуть налево
 ui-options-function-camera-rotate-right = Повернуть направо
 ui-options-function-camera-reset = Сбросить камеру
 ui-options-function-zoom-in = Приблизить
+ui-options-function-toggle-look-ahead = Переключить обзор за курсором
 ui-options-function-zoom-out = Отдалить
 ui-options-function-reset-zoom = Сбросить
 ui-options-function-use = Использовать
