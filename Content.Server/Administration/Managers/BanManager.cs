@@ -164,7 +164,7 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
             banningAdmin,
             null);
 
-        await _db.AddServerBanAsync(banDef);
+        var banId = await _db.AddServerBanAsync(banDef);
         if (_cfg.GetCVar(CCVars.ServerBanResetLastReadRules) && target != null)
             await _db.SetLastReadRules(target.Value, null); // Reset their last read rules. They probably need a refresher!
         var adminName = banningAdmin == null
@@ -193,6 +193,7 @@ public sealed partial class BanManager : IBanManager, IPostInjectInit
         _chat.SendAdminAlert(logMessage);
 
         KickMatchingConnectedPlayers(banDef, "newly placed ban");
+        _ = SendServerBanWebhook(banId, banDef, targetUsername, adminName);
     }
 
     private void KickMatchingConnectedPlayers(ServerBanDef def, string source)
