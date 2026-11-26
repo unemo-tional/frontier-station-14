@@ -108,18 +108,18 @@ public sealed class HardsuitUpgradeWindow : FancyWindow
             state.SiloLinked ? "uneon-hardsuit-silo-unavailable" : "uneon-hardsuit-silo-unlinked");
         _eject.Disabled = state.Busy || state.SuitName == null;
         _ejectMaterials.Disabled = state.Busy || !state.HasLocalMaterials;
-        foreach (var row in _rows.Values)
-            row.Row.Visible = false;
+        // Keep visible controls attached to input while status updates arrive.
+        foreach (var (kind, row) in _rows)
+            row.Row.Visible = state.Options.Any(option => option.Kind == kind);
         foreach (var option in state.Options)
         {
             var row = _rows[option.Kind];
-            row.Row.Visible = true;
             var name = Loc.GetString("uneon-hardsuit-stat-" + option.Kind.ToString().ToLowerInvariant());
             row.Stat.Text = Loc.GetString("uneon-hardsuit-stat", ("name", name), ("current", option.Current),
                 ("target", option.Target), ("limit", HardsuitUpgradeRules.Limit(option.Kind)));
-            row.Cost.Text = option.Available ? Quantities(HardsuitUpgradeRules.Cost(option.Kind, option.Target)) : "";
+            row.Cost.Text = option.Available ? Quantities(option.Cost) : "";
             row.Buy.Text = option.Available
-                ? Loc.GetString("uneon-hardsuit-upgrade", ("seconds", HardsuitUpgradeRules.Seconds(option.Kind, option.Target)))
+                ? Loc.GetString("uneon-hardsuit-upgrade", ("seconds", option.Seconds))
                 : Loc.GetString("uneon-hardsuit-limit");
             row.Buy.Disabled = state.Busy || !state.Powered || !option.Available || !option.Affordable;
         }

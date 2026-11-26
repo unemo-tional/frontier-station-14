@@ -5,6 +5,9 @@ namespace Content.Server._UNEON.HardsuitUpgrade;
 [RegisterComponent]
 public sealed partial class HardsuitUpgradeComponent : Component
 {
+    public float TimeMultiplier = 1;
+    public float MaterialUseMultiplier = 1;
+
     // Save paid work with the station, including remaining powered processing time.
     [DataField] public HardsuitUpgradeKind? Job;
     [DataField] public EntityUid? JobSuit;

@@ -28,7 +28,7 @@
     powerLoad: 2000
   - type: MaterialStorage
     canEjectStoredMaterials: false
-    materialWhiteList: [Steel, Plasteel, Plastic, Gold, Uranium, Plasma, Bluespace]
+    materialWhiteList: [Steel, Plasteel, Plastic, Gold, Uranium, Plasma, Bluespace, PlasmaGlass, UraniumGlass, Durathread, Cloth, Bananium]
     whitelist:
       tags: [Sheet, RawMaterial, Ingot]
   - type: OreSiloClient

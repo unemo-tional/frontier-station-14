@@ -37,18 +37,33 @@ public static class HardsuitUpgradeRules
         float.IsFinite(current) && (kind == HardsuitUpgradeKind.Speed ? current > 0 : current < Limit(kind));
 
     public static int Seconds(HardsuitUpgradeKind kind, float target) =>
-        kind == HardsuitUpgradeKind.Speed || target > 60 ? 60 : target > 40 ? 30 : 15;
+        kind == HardsuitUpgradeKind.Speed || target > 60 ? 20 : target > 40 ? 10 : 5;
 
-    public static Dictionary<string, int> Cost(HardsuitUpgradeKind kind, float target)
+    public static Dictionary<string, int> Cost(HardsuitUpgradeKind kind, float target) => (kind, target) switch
     {
-        if (kind == HardsuitUpgradeKind.Speed)
-            return new() { ["Bluespace"] = 5 };
-        if (target <= 40)
-            return new() { ["Steel"] = 30, ["Plasteel"] = 15, ["Plastic"] = 10 };
-        if (target <= 60)
-            return new() { ["Steel"] = 30, ["Plasteel"] = 30, ["Gold"] = 15,
-                ["Uranium"] = 15, ["Plasma"] = 15, ["Plastic"] = 10 };
-        return new() { ["Steel"] = 30, ["Plasteel"] = 30, ["Gold"] = 30,
-            ["Uranium"] = 30, ["Plasma"] = 30, ["Plastic"] = 30, ["Bluespace"] = 1 };
-    }
+        (HardsuitUpgradeKind.Blunt, <= 40) => new() { ["Steel"] = 30, ["Plasteel"] = 15, ["Plastic"] = 10 },
+        (HardsuitUpgradeKind.Blunt, <= 60) => new() { ["Steel"] = 30, ["Plasteel"] = 20, ["Plastic"] = 10 },
+        (HardsuitUpgradeKind.Blunt, _) => new() { ["Steel"] = 30, ["Plasteel"] = 30, ["Plastic"] = 20 },
+        (HardsuitUpgradeKind.Slash, <= 40) => new() { ["Steel"] = 20, ["PlasmaGlass"] = 15 },
+        (HardsuitUpgradeKind.Slash, <= 60) => new() { ["Steel"] = 20, ["PlasmaGlass"] = 20 },
+        (HardsuitUpgradeKind.Slash, _) => new() { ["Steel"] = 30, ["PlasmaGlass"] = 30 },
+        (HardsuitUpgradeKind.Piercing, <= 40) => new() { ["Steel"] = 30, ["Plasteel"] = 15, ["Plasma"] = 10 },
+        (HardsuitUpgradeKind.Piercing, <= 60) => new() { ["Steel"] = 30, ["Plasteel"] = 25, ["Uranium"] = 10 },
+        (HardsuitUpgradeKind.Piercing, _) => new() { ["Steel"] = 45, ["Plasteel"] = 30, ["Uranium"] = 30 },
+        (HardsuitUpgradeKind.Heat, <= 40) => new() { ["Durathread"] = 10 },
+        (HardsuitUpgradeKind.Heat, <= 60) => new() { ["Durathread"] = 20 },
+        (HardsuitUpgradeKind.Heat, _) => new() { ["Durathread"] = 25 },
+        (HardsuitUpgradeKind.Radiation, <= 40) => new() { ["UraniumGlass"] = 10, ["Bananium"] = 5 },
+        (HardsuitUpgradeKind.Radiation, <= 60) => new() { ["UraniumGlass"] = 20, ["Bananium"] = 7 },
+        (HardsuitUpgradeKind.Radiation, <= 90) => new() { ["UraniumGlass"] = 30, ["Bananium"] = 10 },
+        (HardsuitUpgradeKind.Radiation, _) => new() { ["UraniumGlass"] = 30, ["Uranium"] = 30, ["Bananium"] = 10 },
+        (HardsuitUpgradeKind.Caustic, <= 40) => new() { ["Cloth"] = 15, ["Plasma"] = 10 },
+        (HardsuitUpgradeKind.Caustic, <= 60) => new() { ["Cloth"] = 20, ["Plasma"] = 10 },
+        (HardsuitUpgradeKind.Caustic, _) => new() { ["Cloth"] = 20, ["Plasma"] = 15 },
+        (HardsuitUpgradeKind.Explosion, <= 40) => new() { ["Steel"] = 30, ["Plasteel"] = 10 },
+        (HardsuitUpgradeKind.Explosion, <= 60) => new() { ["Steel"] = 30, ["Plasteel"] = 20 },
+        (HardsuitUpgradeKind.Explosion, _) => new() { ["Steel"] = 40, ["Plasteel"] = 40 },
+        (HardsuitUpgradeKind.Speed, _) => new() { ["Bluespace"] = 5 },
+        _ => throw new ArgumentOutOfRangeException(nameof(kind))
+    };
 }

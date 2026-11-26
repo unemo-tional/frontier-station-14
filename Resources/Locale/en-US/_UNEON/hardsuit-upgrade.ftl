@@ -36,4 +36,12 @@ uneon-hardsuit-material-plastic = Plastic
 uneon-hardsuit-material-gold = Gold
 uneon-hardsuit-material-uranium = Uranium
 uneon-hardsuit-material-plasma = Plasma
+uneon-hardsuit-material-plasmaglass = Plasma glass
+uneon-hardsuit-material-uraniumglass = Uranium glass
+uneon-hardsuit-material-bananium = Bananium
+uneon-hardsuit-material-durathread = Durathread
+uneon-hardsuit-material-cloth = Cloth
 uneon-hardsuit-material-bluespace = Bluespace crystals
+
+uneon-hardsuit-upgrade-speed = refit speed
+uneon-hardsuit-upgrade-material-use = material consumption

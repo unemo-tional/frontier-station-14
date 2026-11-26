@@ -9,12 +9,14 @@ using Content.Shared.Armor;
 using Content.Shared.Clothing;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Construction;
+using Content.Shared.Construction.Components;
 using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Destructible;
 using Content.Shared.Explosion.Components;
 using Content.Shared.Explosion.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Inventory;
+using Content.Shared.Lathe;
 using Content.Shared.Materials;
 using Content.Shared.Materials.OreSilo;
 using Content.Shared.Tag;
@@ -49,6 +51,8 @@ public sealed class HardsuitUpgradeSystem : EntitySystem
         SubscribeLocalEvent<HardsuitUpgradeComponent, HardsuitUpgradeMaterialsMessage>(OnEjectMaterials);
         SubscribeLocalEvent<HardsuitUpgradeComponent, ContainerIsInsertingAttemptEvent>(OnInsertAttempt);
         SubscribeLocalEvent<HardsuitUpgradeComponent, EntRemovedFromContainerMessage>(OnRemoved);
+        SubscribeLocalEvent<HardsuitUpgradeComponent, RefreshPartsEvent>(OnPartsRefresh);
+        SubscribeLocalEvent<HardsuitUpgradeComponent, UpgradeExamineEvent>(OnUpgradeExamine);
         // Refund paid work before standard deconstruction ejects stored resources and the suit.
         SubscribeLocalEvent<HardsuitUpgradeComponent, MachineDeconstructedEvent>(OnDeconstruct,
             before: new[] { typeof(MaterialStorageSystem), typeof(EmptyOnMachineDeconstructSystem) });
@@ -152,6 +156,31 @@ public sealed class HardsuitUpgradeSystem : EntitySystem
         return 0;
     }
 
+    private void OnPartsRefresh(EntityUid uid, HardsuitUpgradeComponent comp, RefreshPartsEvent args)
+    {
+        var manipulatorRating = MathF.Max(1, args.PartRatings.GetValueOrDefault("Manipulator", 1f));
+        var matterBinRating = MathF.Max(1, args.PartRatings.GetValueOrDefault("MatterBin", 1f));
+        comp.TimeMultiplier = MathF.Pow(0.5f, manipulatorRating - 1);
+        comp.MaterialUseMultiplier = MathF.Pow(LatheComponent.DefaultPartRatingMaterialUseMultiplier, matterBinRating - 1);
+    }
+
+    private void OnUpgradeExamine(EntityUid uid, HardsuitUpgradeComponent comp, UpgradeExamineEvent args)
+    {
+        args.AddPercentageUpgrade("uneon-hardsuit-upgrade-speed", 1 / comp.TimeMultiplier);
+        args.AddPercentageUpgrade("uneon-hardsuit-upgrade-material-use", comp.MaterialUseMultiplier);
+    }
+
+    private static Dictionary<string, int> Cost(HardsuitUpgradeComponent comp, HardsuitUpgradeKind kind, float target)
+    {
+        var cost = HardsuitUpgradeRules.Cost(kind, target);
+        if (kind != HardsuitUpgradeKind.Speed && comp.MaterialUseMultiplier != 1)
+        {
+            foreach (var material in cost.Keys.ToArray())
+                cost[material] = (int) Math.Ceiling(Math.Round(cost[material] * comp.MaterialUseMultiplier, 4));
+        }
+        return cost;
+    }
+
     private Dictionary<string, int> Volumes(Dictionary<string, int> quantities) => quantities.ToDictionary(
         pair => pair.Key, pair => pair.Value * _materials.GetSheetVolume(_prototypes.Index<MaterialPrototype>(pair.Key)));
 
@@ -165,7 +194,7 @@ public sealed class HardsuitUpgradeSystem : EntitySystem
         if (!HardsuitUpgradeRules.CanImprove(kind, current))
             return false;
         var target = HardsuitUpgradeRules.Target(kind, current);
-        var cost = Volumes(HardsuitUpgradeRules.Cost(kind, target));
+        var cost = Volumes(Cost(comp, kind, target));
         var stored = _materials.GetStoredMaterials((uid, null));
         if (cost.Any(p => stored.GetValueOrDefault(p.Key) < p.Value))
             return false;
@@ -193,7 +222,7 @@ public sealed class HardsuitUpgradeSystem : EntitySystem
         comp.Job = kind;
         comp.JobSuit = suit;
         comp.Target = target;
-        comp.Duration = comp.Remaining = HardsuitUpgradeRules.Seconds(kind, target);
+        comp.Duration = comp.Remaining = HardsuitUpgradeRules.Seconds(kind, target) * comp.TimeMultiplier;
         comp.PaidMaterials = localPaid;
         comp.PaidSilo = siloPaid.Count > 0 ? silo : null;
         comp.PaidSiloMaterials = siloPaid;
@@ -269,9 +298,11 @@ public sealed class HardsuitUpgradeSystem : EntitySystem
             {
                 var current = Current(item, kind);
                 var target = HardsuitUpgradeRules.Target(kind, current);
-                var affordable = Volumes(HardsuitUpgradeRules.Cost(kind, target))
+                var cost = Cost(comp, kind, target);
+                var affordable = Volumes(cost)
                     .All(p => stored.GetValueOrDefault(p.Key) >= p.Value);
-                options.Add(new(kind, current, target, affordable, HardsuitUpgradeRules.CanImprove(kind, current)));
+                var seconds = HardsuitUpgradeRules.Seconds(kind, target) * comp.TimeMultiplier;
+                options.Add(new(kind, current, target, affordable, HardsuitUpgradeRules.CanImprove(kind, current), cost, seconds));
             }
         }
         var quantities = stored.ToDictionary(p => p.Key.ToString(), p =>
