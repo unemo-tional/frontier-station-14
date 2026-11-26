@@ -33,8 +33,16 @@ uneon-hardsuit-material-plastic = Пластик
 uneon-hardsuit-material-gold = Золото
 uneon-hardsuit-material-uranium = Уран
 uneon-hardsuit-material-plasma = Плазма
+uneon-hardsuit-material-plasmaglass = Плазменное стекло
+uneon-hardsuit-material-uraniumglass = Урановое стекло
+uneon-hardsuit-material-bananium = Бананиум
+uneon-hardsuit-material-durathread = Дюраткань
+uneon-hardsuit-material-cloth = Ткань
 uneon-hardsuit-material-bluespace = Блюспейс-кристаллы
 
 uneon-hardsuit-silo-available = Склад материалов подключён. Показан общий запас.
 uneon-hardsuit-silo-unavailable = Склад материалов подключён, но сейчас недоступен.
 uneon-hardsuit-silo-unlinked = Локальный запас. Станок можно подключить через меню склада материалов.
+
+uneon-hardsuit-upgrade-speed = скорость модернизации
+uneon-hardsuit-upgrade-material-use = расход материалов

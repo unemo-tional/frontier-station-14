@@ -24,13 +24,16 @@ public sealed class HardsuitUpgradeEjectMessage : BoundUserInterfaceMessage;
 public sealed class HardsuitUpgradeMaterialsMessage : BoundUserInterfaceMessage;
 
 [Serializable, NetSerializable]
-public sealed class HardsuitUpgradeOption(HardsuitUpgradeKind kind, float current, float target, bool affordable, bool available)
+public sealed class HardsuitUpgradeOption(HardsuitUpgradeKind kind, float current, float target, bool affordable, bool available,
+    Dictionary<string, int> cost, float seconds)
 {
     public readonly HardsuitUpgradeKind Kind = kind;
     public readonly float Current = current;
     public readonly float Target = target;
     public readonly bool Affordable = affordable;
     public readonly bool Available = available;
+    public readonly Dictionary<string, int> Cost = cost;
+    public readonly float Seconds = seconds;
 }
 
 [Serializable, NetSerializable]

@@ -7,13 +7,13 @@ namespace Content.Tests.Server._UNEON;
 [TestFixture]
 public sealed class HardsuitUpgradeRulesTest
 {
-    [TestCase(35, 40, 15, 15, 0, 0)]
-    [TestCase(36, 41, 30, 30, 15, 0)]
-    [TestCase(40, 45, 30, 30, 15, 0)]
-    [TestCase(55, 60, 30, 30, 15, 0)]
-    [TestCase(56, 61, 60, 30, 30, 1)]
-    [TestCase(60, 65, 60, 30, 30, 1)]
-    public void PriceAndDurationUseTheResult(float current, float expected, int seconds, int plasteel, int gold, int crystals)
+    [TestCase(35, 40, 5, 15)]
+    [TestCase(36, 41, 10, 20)]
+    [TestCase(40, 45, 10, 20)]
+    [TestCase(55, 60, 10, 20)]
+    [TestCase(56, 61, 20, 30)]
+    [TestCase(60, 65, 20, 30)]
+    public void PriceAndDurationUseTheResult(float current, float expected, int seconds, int plasteel)
     {
         var target = HardsuitUpgradeRules.Target(HardsuitUpgradeKind.Blunt, current);
         var cost = HardsuitUpgradeRules.Cost(HardsuitUpgradeKind.Blunt, target);
@@ -21,11 +21,7 @@ public sealed class HardsuitUpgradeRulesTest
         Assert.That(HardsuitUpgradeRules.Seconds(HardsuitUpgradeKind.Blunt, target), Is.EqualTo(seconds));
         Assert.That(cost["Steel"], Is.EqualTo(30));
         Assert.That(cost["Plasteel"], Is.EqualTo(plasteel));
-        Assert.That(cost.GetValueOrDefault("Gold"), Is.EqualTo(gold));
-        Assert.That(cost.GetValueOrDefault("Bluespace"), Is.EqualTo(crystals));
-        Assert.That(cost["Plastic"], Is.EqualTo(target > 60 ? 30 : 10));
-        Assert.That(cost.GetValueOrDefault("Uranium"), Is.EqualTo(gold));
-        Assert.That(cost.GetValueOrDefault("Plasma"), Is.EqualTo(gold));
+        Assert.That(cost["Plastic"], Is.EqualTo(target > 60 ? 20 : 10));
     }
 
     [TestCase(HardsuitUpgradeKind.Blunt, 80)]
@@ -52,7 +48,7 @@ public sealed class HardsuitUpgradeRulesTest
         Assert.That(HardsuitUpgradeRules.Target(HardsuitUpgradeKind.Speed, current), Is.EqualTo(target));
         Assert.That(HardsuitUpgradeRules.Cost(HardsuitUpgradeKind.Speed, target),
             Is.EquivalentTo(new Dictionary<string, int> { ["Bluespace"] = 5 }));
-        Assert.That(HardsuitUpgradeRules.Seconds(HardsuitUpgradeKind.Speed, target), Is.EqualTo(60));
+        Assert.That(HardsuitUpgradeRules.Seconds(HardsuitUpgradeKind.Speed, target), Is.EqualTo(20));
         Assert.That(HardsuitUpgradeRules.CanImprove(HardsuitUpgradeKind.Speed, 0), Is.False);
         Assert.That(HardsuitUpgradeRules.CanImprove(HardsuitUpgradeKind.Speed, -10), Is.False);
     }
@@ -64,7 +60,7 @@ public sealed class HardsuitUpgradeRulesTest
         var target = HardsuitUpgradeRules.Target(HardsuitUpgradeKind.Piercing, current);
         Assert.That(current, Is.EqualTo(55));
         Assert.That(target, Is.EqualTo(60));
-        Assert.That(HardsuitUpgradeRules.Cost(HardsuitUpgradeKind.Piercing, target).ContainsKey("Bluespace"), Is.False);
+        Assert.That(HardsuitUpgradeRules.Cost(HardsuitUpgradeKind.Piercing, target)["Uranium"], Is.EqualTo(10));
         Assert.That(HardsuitUpgradeRules.CanImprove(HardsuitUpgradeKind.Heat, float.NaN), Is.False);
     }
 }

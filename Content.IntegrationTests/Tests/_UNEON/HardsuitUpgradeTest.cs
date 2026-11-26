@@ -148,10 +148,10 @@ public sealed class HardsuitUpgradeTest
             Assert.That(slots.TryEject(station, HardsuitUpgradeRules.Slot, null, out _), Is.False);
             power.Powered = false;
             system.Update(120);
-            Assert.That(job.Remaining, Is.EqualTo(15));
+            Assert.That(job.Remaining, Is.EqualTo(5));
             Assert.That(system.Current(suit, HardsuitUpgradeKind.Blunt), Is.EqualTo(starting));
             power.Powered = true;
-            system.Update(15);
+            system.Update(5);
             Assert.That(job.Job, Is.Null);
             Assert.That(slots.GetItemOrNull(station, HardsuitUpgradeRules.Slot), Is.Null);
             Assert.That(system.Current(suit, HardsuitUpgradeKind.Blunt), Is.EqualTo(starting + 5));
@@ -166,8 +166,8 @@ public sealed class HardsuitUpgradeTest
                 materials.TrySetMaterialAmount(station, material, 10000);
             em.System<ArmorSystem>().SetDamageCoefficient((suit, em.GetComponent<ArmorComponent>(suit)), "Blunt", 0.21f);
             Assert.That(system.TryStartUpgrade(station, HardsuitUpgradeKind.Blunt), Is.True);
-            Assert.That(job.Duration, Is.EqualTo(60));
-            system.Update(60);
+            Assert.That(job.Duration, Is.EqualTo(20));
+            system.Update(20);
             Assert.That(system.Current(suit, HardsuitUpgradeKind.Blunt), Is.EqualTo(80));
             Assert.That(slots.TryInsert(station, HardsuitUpgradeRules.Slot, suit, null), Is.True);
             Assert.That(system.TryStartUpgrade(station, HardsuitUpgradeKind.Blunt), Is.False);
@@ -175,10 +175,21 @@ public sealed class HardsuitUpgradeTest
             Assert.That(system.TryStartUpgrade(station, HardsuitUpgradeKind.Blunt), Is.False);
             Assert.That(system.Current(suit, HardsuitUpgradeKind.Blunt), Is.EqualTo(90));
 
+            em.EventBus.RaiseLocalEvent(station, new RefreshPartsEvent
+            {
+                PartRatings = { ["Manipulator"] = 2, ["MatterBin"] = 2 },
+            });
+
+
             // Explosion resistance uses the explosion component, not a fictitious damage type.
             em.System<SharedExplosionSystem>().SetDamageCoefficient((suit, em.GetComponent<ExplosionResistanceComponent>(suit)), 0.31f);
+            var steelBefore = materials.GetMaterialAmount(station, "Steel");
+            var plasteelBefore = materials.GetMaterialAmount(station, "Plasteel");
             Assert.That(system.TryStartUpgrade(station, HardsuitUpgradeKind.Explosion), Is.True);
-            system.Update(60);
+            Assert.That(job.Duration, Is.EqualTo(10));
+            Assert.That(materials.GetMaterialAmount(station, "Steel"), Is.EqualTo(steelBefore - 3400));
+            Assert.That(materials.GetMaterialAmount(station, "Plasteel"), Is.EqualTo(plasteelBefore - 3400));
+            system.Update(10);
             Assert.That(system.Current(suit, HardsuitUpgradeKind.Explosion), Is.EqualTo(70));
             Assert.That(slots.TryInsert(station, HardsuitUpgradeRules.Slot, suit, null), Is.True);
             var speed = em.GetComponent<ClothingSpeedModifierComponent>(suit);
@@ -187,7 +198,7 @@ public sealed class HardsuitUpgradeTest
             var crystals = materials.GetMaterialAmount(station, "Bluespace");
             Assert.That(system.TryStartUpgrade(station, HardsuitUpgradeKind.Speed), Is.True);
             Assert.That(materials.GetMaterialAmount(station, "Bluespace"), Is.EqualTo(crystals - 500));
-            system.Update(60);
+            system.Update(20);
             Assert.That(speed.WalkModifier, Is.EqualTo(walk + 0.05f).Within(0.0001));
             Assert.That(speed.SprintModifier, Is.EqualTo(sprint + 0.05f).Within(0.0001));
 
