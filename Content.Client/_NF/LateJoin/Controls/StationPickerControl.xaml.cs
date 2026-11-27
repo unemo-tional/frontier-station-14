@@ -91,13 +91,10 @@ public sealed partial class StationPickerControl : PickerControl
                 texture = _spriteSystem.Frame0(jobIcon.Icon);
             }
 
-            var buttonTooltip = "";
-            if (!_jobReqs.IsAllowed(prototype, profile, out var denyReason))
-            {
-                buttonTooltip = denyReason.ToString();
-            }
-
-            var isButtonDisabled = jobCount == 0 || !_jobReqs.IsAllowed(prototype, profile, out _);
+            var allowed = _jobReqs.IsAllowed(prototype, profile, out var denyReason,
+                jobInformation.StationDisplayInfo?.StationSubtext);
+            var buttonTooltip = denyReason?.ToString() ?? "";
+            var isButtonDisabled = jobCount == 0 || !allowed;
             var viewState = new JobListItem.ViewState(
                 jobId: jobPrototype,
                 jobName: jobName,

@@ -149,7 +149,7 @@ namespace Content.Server.GameTicking
 
             if (jobId != null)
             {
-                var ev = new IsJobAllowedEvent(player, new ProtoId<JobPrototype>(jobId));
+                var ev = new IsJobAllowedEvent(player, new ProtoId<JobPrototype>(jobId), station);
                 RaiseLocalEvent(ref ev);
                 if (ev.Cancelled)
                     return;
@@ -228,7 +228,7 @@ namespace Content.Server.GameTicking
 
             // Figure out job restrictions
             var restrictedRoles = new HashSet<ProtoId<JobPrototype>>();
-            var ev = new GetDisallowedJobsEvent(player, restrictedRoles);
+            var ev = new GetDisallowedJobsEvent(player, restrictedRoles, station);
             RaiseLocalEvent(ref ev);
 
             var jobBans = _banManager.GetJobBans(player.UserId);

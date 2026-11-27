@@ -216,7 +216,8 @@ public sealed partial class PlayTimeTrackingManager : ISharedPlaytimeManager, IP
 
         var msg = new MsgPlayTime
         {
-            Trackers = roles
+            Trackers = roles,
+            SponsorJobTier = _playTimeData[pSession].SponsorJobTier
         };
 
         _net.ServerSendMessage(msg, pSession.Channel);
@@ -422,6 +423,15 @@ public sealed partial class PlayTimeTrackingManager : ISharedPlaytimeManager, IP
             data.NeedSendTimers = true;
     }
 
+    public void UpdateSponsorJobTier(ICommonSession player, byte tier)
+    {
+        if (!_playTimeData.TryGetValue(player, out var data) || data.SponsorJobTier == tier)
+            return;
+
+        data.SponsorJobTier = tier;
+        QueueSendTimers(player);
+    }
+
     private PlayTimeData? DirtyPlayer(ICommonSession player)
     {
         if (!_playTimeData.TryGetValue(player, out var data) || !data.Initialized)
@@ -445,6 +455,7 @@ public sealed partial class PlayTimeTrackingManager : ISharedPlaytimeManager, IP
         public bool IsDirty;
         public bool NeedRefreshTackers;
         public bool NeedSendTimers;
+        public byte SponsorJobTier;
 
         // Active tracking info
         public readonly HashSet<string> ActiveTrackers = new();

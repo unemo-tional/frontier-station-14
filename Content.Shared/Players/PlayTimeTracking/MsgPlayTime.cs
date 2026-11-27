@@ -11,10 +11,12 @@ public sealed class MsgPlayTime : NetMessage
 {
     public override MsgGroups MsgGroup => MsgGroups.EntityEvent;
 
+    public byte SponsorJobTier;
     public Dictionary<string, TimeSpan> Trackers = new();
 
     public override void ReadFromBuffer(NetIncomingMessage buffer, IRobustSerializer serializer)
     {
+        SponsorJobTier = buffer.ReadByte();
         var count = buffer.ReadVariableInt32();
         Trackers.EnsureCapacity(count);
 
@@ -26,6 +28,7 @@ public sealed class MsgPlayTime : NetMessage
 
     public override void WriteToBuffer(NetOutgoingMessage buffer, IRobustSerializer serializer)
     {
+        buffer.Write(SponsorJobTier);
         buffer.WriteVariableInt32(Trackers.Count);
 
         foreach (var (role, time) in Trackers)

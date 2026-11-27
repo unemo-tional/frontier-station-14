@@ -1,5 +1,9 @@
 using System.Linq;
 using Content.Server.Administration;
+using Content.Server._NF.Station.Components;
+using Content.Server._UNEON.Subscriptions;
+using Content.Shared._UNEON.Subscriptions;
+using Robust.Shared.Timing;
 using Content.Server.Administration.Managers;
 using Content.Server.Afk;
 using Content.Server.Afk.Events;
@@ -37,6 +41,23 @@ public sealed partial class PlayTimeTrackingSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private SharedRoleSystem _roles = default!;
     [Dependency] private PlayTimeTrackingManager _tracking = default!;
+
+    [Dependency] private UneonSubscriptionsSystem _subscriptions = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    private TimeSpan _nextSponsorSync;
+
+    public override void Update(float frameTime)
+    {
+        if (_timing.RealTime < _nextSponsorSync)
+            return;
+
+        _nextSponsorSync = _timing.RealTime + TimeSpan.FromSeconds(1);
+        foreach (var player in _playerManager.Sessions)
+        {
+            var tier = _subscriptions.GetTier(player.UserId);
+            _tracking.UpdateSponsorJobTier(player, tier is 4 or 5 ? (byte) tier : (byte) 0);
+        }
+    }
 
     public override void Initialize()
     {
@@ -178,16 +199,16 @@ public sealed partial class PlayTimeTrackingSystem : EntitySystem
 
     private void OnIsJobAllowed(ref IsJobAllowedEvent ev)
     {
-        if (!IsAllowed(ev.Player, ev.JobId))
+        if (!IsAllowed(ev.Player, ev.JobId, ev.Station))
             ev.Cancelled = true;
     }
 
     private void OnGetDisallowedJobs(ref GetDisallowedJobsEvent ev)
     {
-        ev.Jobs.UnionWith(GetDisallowedJobs(ev.Player));
+        ev.Jobs.UnionWith(GetDisallowedJobs(ev.Player, ev.Station));
     }
 
-    public bool IsAllowed(ICommonSession player, string role)
+    public bool IsAllowed(ICommonSession player, string role, EntityUid? station = null)
     {
         if (!_prototypes.TryIndex<JobPrototype>(role, out var job) ||
             !_cfg.GetCVar(CCVars.GameRoleTimers))
@@ -199,10 +220,10 @@ public sealed partial class PlayTimeTrackingSystem : EntitySystem
             playTimes = new Dictionary<string, TimeSpan>();
         }
 
-        return JobRequirements.TryRequirementsMet(job, playTimes, out _, EntityManager, _prototypes, (HumanoidCharacterProfile?) _preferencesManager.GetPreferences(player.UserId).SelectedCharacter);
+        return MeetsJobRequirements(player.UserId, job, playTimes, GetStationSubtext(station));
     }
 
-    public HashSet<ProtoId<JobPrototype>> GetDisallowedJobs(ICommonSession player)
+    public HashSet<ProtoId<JobPrototype>> GetDisallowedJobs(ICommonSession player, EntityUid station)
     {
         var roles = new HashSet<ProtoId<JobPrototype>>();
         if (!_cfg.GetCVar(CCVars.GameRoleTimers))
@@ -214,9 +235,10 @@ public sealed partial class PlayTimeTrackingSystem : EntitySystem
             playTimes = new Dictionary<string, TimeSpan>();
         }
 
+        var stationSubtext = GetStationSubtext(station);
         foreach (var job in _prototypes.EnumeratePrototypes<JobPrototype>())
         {
-            if (JobRequirements.TryRequirementsMet(job, playTimes, out _, EntityManager, _prototypes, (HumanoidCharacterProfile?) _preferencesManager.GetPreferences(player.UserId).SelectedCharacter))
+            if (!MeetsJobRequirements(player.UserId, job, playTimes, stationSubtext))
                 roles.Add(job.ID);
         }
 
@@ -236,12 +258,10 @@ public sealed partial class PlayTimeTrackingSystem : EntitySystem
             playTimes ??= new Dictionary<string, TimeSpan>();
         }
 
-        var isWhitelisted = player.ContentData()?.Whitelisted ?? false; // DeltaV - Whitelist requirement
-
         for (var i = 0; i < jobs.Count; i++)
         {
             if (_prototypes.TryIndex(jobs[i], out var job)
-                && JobRequirements.TryRequirementsMet(job, playTimes, out _, EntityManager, _prototypes, (HumanoidCharacterProfile?) _preferencesManager.GetPreferences(userId).SelectedCharacter))
+                && MeetsJobRequirements(userId, job, playTimes, null, preview: true))
             {
                 continue;
             }
@@ -249,6 +269,25 @@ public sealed partial class PlayTimeTrackingSystem : EntitySystem
             jobs.RemoveSwap(i);
             i--;
         }
+    }
+
+    private LocId? GetStationSubtext(EntityUid? station) =>
+        TryComp<ExtraStationInformationComponent>(station, out var info) ? info.StationSubtext : null;
+
+    private bool MeetsJobRequirements(NetUserId user, JobPrototype job, IReadOnlyDictionary<string, TimeSpan> playTimes,
+        LocId? station, bool preview = false)
+    {
+        var bypass = UneonJobPlaytime.BypassesTimers(_subscriptions.GetTier(user), job.ID, station, preview);
+        var profile = (HumanoidCharacterProfile?) _preferencesManager.GetPreferences(user).SelectedCharacter;
+        return JobRequirements.TryRequirementsMet(job, playTimes, out _, EntityManager, _prototypes, profile, bypass);
+    }
+
+    public bool CanAssignStationScopedJob(NetUserId user, ProtoId<JobPrototype> job, EntityUid station)
+    {
+        if (_subscriptions.GetTier(user) != 4)
+            return true;
+
+        return _playerManager.TryGetSessionById(user, out var player) && IsAllowed(player, job.Id, station);
     }
 
     public void PlayerRolesChanged(ICommonSession player)
