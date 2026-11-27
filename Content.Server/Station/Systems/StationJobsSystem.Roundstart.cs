@@ -5,6 +5,7 @@ using Content.Server.Players.PlayTimeTracking;
 using Content.Server.Station.Components;
 using Content.Server.Station.Events;
 using Content.Shared.Players.PlayTimeTracking;
+using Content.Shared._UNEON.Subscriptions;
 using Content.Shared.Preferences;
 using Content.Shared.Roles;
 using Robust.Server.Player;
@@ -246,11 +247,22 @@ public sealed partial class StationJobsSystem
                             if (currStationSelectingJobs[job] != null && currStationSelectingJobs[job] == 0)
                                 continue; // Can't assign this job.
 
-                            if (!jobPlayerOptions.ContainsKey(job))
+                            if (!jobPlayerOptions.TryGetValue(job, out var players))
                                 continue;
 
-                            // Picking players it finds that have the job set.
-                            var player = _random.Pick(jobPlayerOptions[job]);
+                            NetUserId player;
+                            if (UneonJobPlaytime.BaronStation(job.Id) != null)
+                            {
+                                var eligible = players.Where(user => _playTime.CanAssignStationScopedJob(user, job, station)).ToList();
+                                if (eligible.Count == 0)
+                                    continue;
+
+                                player = _random.Pick(eligible);
+                            }
+                            else
+                            {
+                                player = _random.Pick(players);
+                            }
                             AssignPlayer(player, job, station);
                             stationShares[station]--;
 
@@ -317,7 +329,7 @@ public sealed partial class StationJobsSystem
                 bool nfJobAssigned = false;
                 foreach (var overflowJob in overflows)
                 {
-                    if (nfSession != null && _playTime.IsAllowed(nfSession, overflowJob))
+                    if (nfSession != null && _playTime.IsAllowed(nfSession, overflowJob, station))
                     {
                         assignedJobs.Add(player, (overflowJob, station));
                         nfJobAssigned = true;

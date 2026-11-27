@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Preferences;
+using Content.Shared._UNEON.Subscriptions;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
@@ -14,7 +15,8 @@ public static class JobRequirements
         [NotNullWhen(false)] out FormattedMessage? reason,
         IEntityManager entManager,
         IPrototypeManager protoManager,
-        HumanoidCharacterProfile? profile)
+        HumanoidCharacterProfile? profile,
+        bool bypassTimers = false)
     {
         var sys = entManager.System<SharedRoleSystem>();
         var requirements = sys.GetJobRequirement(job);
@@ -27,7 +29,8 @@ public static class JobRequirements
         bool success = true;
         foreach (var requirement in requirements)
         {
-            if (!requirement.Check(entManager, protoManager, profile, playTimes, out reason))
+            if (!UneonJobPlaytime.BypassesRequirement(requirement, bypassTimers) &&
+                !requirement.Check(entManager, protoManager, profile, playTimes, out reason))
             {
                 success = false;
                 break;
@@ -43,7 +46,8 @@ public static class JobRequirements
             foreach (var requirement in requirementSet)
             {
                 // Frontier: do not accumulate reasons for alternate job requirements.
-                if (!requirement.Check(entManager, protoManager, profile, playTimes, out _))
+                if (!UneonJobPlaytime.BypassesRequirement(requirement, bypassTimers) &&
+                    !requirement.Check(entManager, protoManager, profile, playTimes, out _))
                 {
                     success = false;
                     break;

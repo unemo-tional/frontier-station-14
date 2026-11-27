@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Client.Lobby;
+using Content.Shared._UNEON.Subscriptions;
 using Content.Shared.CCVar;
 using Content.Shared.Players;
 using Content.Shared.Players.JobWhitelist;
@@ -25,6 +26,7 @@ public sealed partial class JobRequirementsManager : ISharedPlaytimeManager
     [Dependency] private IPlayerManager _playerManager = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
 
+    private byte _sponsorJobTier;
     private readonly Dictionary<string, TimeSpan> _roles = new();
     private readonly List<string> _roleBans = new();
     private readonly List<string> _jobWhitelists = new();
@@ -51,6 +53,7 @@ public sealed partial class JobRequirementsManager : ISharedPlaytimeManager
         if (e.NewLevel == ClientRunLevel.Initialize)
         {
             // Reset on disconnect, just in case.
+            _sponsorJobTier = 0;
             _roles.Clear();
             _jobWhitelists.Clear();
             _roleBans.Clear();
@@ -68,6 +71,7 @@ public sealed partial class JobRequirementsManager : ISharedPlaytimeManager
 
     private void RxPlayTime(MsgPlayTime message)
     {
+        _sponsorJobTier = message.SponsorJobTier;
         _roles.Clear();
 
         // NOTE: do not assign _roles = message.Trackers due to implicit data sharing in integration tests.
@@ -91,7 +95,8 @@ public sealed partial class JobRequirementsManager : ISharedPlaytimeManager
         Updated?.Invoke();
     }
 
-    public bool IsAllowed(JobPrototype job, HumanoidCharacterProfile? profile, [NotNullWhen(false)] out FormattedMessage? reason)
+    public bool IsAllowed(JobPrototype job, HumanoidCharacterProfile? profile, [NotNullWhen(false)] out FormattedMessage? reason,
+        LocId? station = null, bool preview = false)
     {
         reason = null;
 
@@ -108,17 +113,19 @@ public sealed partial class JobRequirementsManager : ISharedPlaytimeManager
         if (player == null)
             return true;
 
-        return CheckRoleRequirements(job, profile, out reason);
+        return CheckRoleRequirements(job, profile, out reason,
+            UneonJobPlaytime.BypassesTimers(_sponsorJobTier, job.ID, station, preview));
     }
 
-    public bool CheckRoleRequirements(JobPrototype job, HumanoidCharacterProfile? profile, [NotNullWhen(false)] out FormattedMessage? reason)
+    public bool CheckRoleRequirements(JobPrototype job, HumanoidCharacterProfile? profile, [NotNullWhen(false)] out FormattedMessage? reason,
+        bool bypassTimers = false)
     {
         var reqs = _entManager.System<SharedRoleSystem>().GetJobRequirement(job);
 
         //return CheckRoleRequirements(reqs, profile, out reason); // Frontier: old implementation
 
         // Frontier: alternate role time checks
-        if (CheckRoleRequirements(reqs, profile, out reason))
+        if (CheckRoleRequirements(reqs, profile, out reason, bypassTimers))
             return true;
 
         var altReqs = _entManager.System<SharedRoleSystem>().GetAlternateJobRequirements(job);
@@ -127,7 +134,7 @@ public sealed partial class JobRequirementsManager : ISharedPlaytimeManager
             foreach (var alternateSet in altReqs.Values)
             {
                 // Suppress reasons on alternate requirement sets
-                if (CheckRoleRequirements(alternateSet, profile, out var altReason))
+                if (CheckRoleRequirements(alternateSet, profile, out var altReason, bypassTimers))
                 {
                     return true;
                 }
@@ -141,7 +148,8 @@ public sealed partial class JobRequirementsManager : ISharedPlaytimeManager
         // End Frontier: alternate role time checks
     }
 
-    public bool CheckRoleRequirements(HashSet<JobRequirement>? requirements, HumanoidCharacterProfile? profile, [NotNullWhen(false)] out FormattedMessage? reason)
+    public bool CheckRoleRequirements(HashSet<JobRequirement>? requirements, HumanoidCharacterProfile? profile, [NotNullWhen(false)] out FormattedMessage? reason,
+        bool bypassTimers = false)
     {
         reason = null;
 
@@ -151,7 +159,8 @@ public sealed partial class JobRequirementsManager : ISharedPlaytimeManager
         var reasons = new List<string>();
         foreach (var requirement in requirements)
         {
-            if (requirement.Check(_entManager, _prototypes, profile, _roles, out var jobReason))
+            if (UneonJobPlaytime.BypassesRequirement(requirement, bypassTimers) ||
+                requirement.Check(_entManager, _prototypes, profile, _roles, out var jobReason))
                 continue;
 
             reasons.Add(jobReason.ToMarkup());
